@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scrabble LAN</title>
+    <!-- We'll use Tailwind for quick and clean styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-gray-900 flex flex-col items-center justify-center min-h-screen p-4">
+
+    <!-- Lobby Screen -->
+    <div id="lobby-screen" class="w-full max-w-md mx-auto bg-gray-800 p-6 rounded-lg shadow-md border border-gray-700">
+        <h1 class="text-3xl font-bold text-center text-gray-100 mb-6">Scrabble LAN</h1>
+        
+        <!-- Player Name Input -->
+        <div class="mb-6">
+            <label for="player-name" class="block text-sm font-medium text-gray-300 mb-2">Your Name:</label>
+            <input type="text" id="player-name" placeholder="Enter your name" 
+                   class="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400">
+        </div>
+        
+        <!-- Join Game Button -->
+        <button id="join-game-btn" class="w-full px-4 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition duration-200 mb-6">
+            Join Game
+        </button>
+        
+        <!-- Players List -->
+        <div class="mb-6">
+            <h3 class="text-lg font-semibold text-gray-300 mb-3">Players in Lobby:</h3>
+            <div id="players-list" class="space-y-2 min-h-[100px]">
+                <div class="text-gray-500 text-center italic">No players yet...</div>
+            </div>
+        </div>
+
+        <!-- Timer Setting (only visible to host) -->
+        <div id="timer-settings" class="mb-6 hidden">
+            <h3 class="text-lg font-semibold text-gray-300 mb-3">Turn Timer:</h3>
+            <select id="turn-timer-select" class="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="0">No Timer</option>
+                <option value="60">1 Minute</option>
+                <option value="120">2 Minutes</option>
+                <option value="180" selected>3 Minutes</option>
+                <option value="240">4 Minutes</option>
+                <option value="300">5 Minutes</option>
+            </select>
+        </div>
+        
+        <!-- Start Game Button (only visible to first player) -->
+        <button id="start-game-btn" class="w-full px-4 py-2 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition duration-200 hidden">
+            Start Game (2-4 players)
+        </button>
+        
+        <!-- Connection Status -->
+        <div id="connection-status" class="text-center text-sm text-gray-400 mt-4">
+            Connecting to server...
+        </div>
+    </div>
+
+    <!-- Main Game Area (initially hidden) -->
+    <div id="game-area" class="w-full max-w-6xl mx-auto flex flex-col lg:flex-row items-start justify-center gap-6 hidden">
+
+        <!-- Left Panel: Scoreboard & Info -->
+        <div class="w-full lg:w-1/4 bg-gray-800 p-4 rounded-lg shadow-md border border-gray-700 order-2 lg:order-1">
+            <h2 class="text-2xl font-bold text-gray-100 mb-4">Game Info</h2>
+            
+            <!-- Timer -->
+            <div class="mb-4">
+                <div class="text-sm font-medium text-gray-400">Current Player</div>
+                <div id="current-player" class="text-lg font-bold text-blue-400">Waiting...</div>
+            </div>
+
+            <!-- Turn Timer -->
+            <div class="mb-4" id="turn-timer-display">
+                <div class="text-sm font-medium text-gray-400">Time Remaining</div>
+                <div id="timer-countdown" class="text-2xl font-bold text-yellow-400">--:--</div>
+                <div class="w-full bg-gray-700 rounded-full h-2 mt-2">
+                    <div id="timer-progress" class="bg-yellow-400 h-2 rounded-full transition-all duration-1000" style="width: 100%"></div>
+                </div>
+            </div>
+
+            <!-- Tiles Remaining -->
+            <div class="mb-4">
+                <div class="text-sm font-medium text-gray-400">Tiles in Bag</div>
+                <div id="tiles-remaining" class="text-2xl font-bold text-green-400">--</div>
+            </div>
+
+            <!-- Scores -->
+            <div class="space-y-3">
+                <h3 class="text-lg font-semibold text-gray-300">Scoreboard</h3>
+                <div id="player-1-score" class="flex justify-between items-center p-2 bg-blue-800 border border-blue-600 rounded">
+                    <span class="font-medium text-black">Player 1 (You)</span>
+                    <span class="font-medium text-black">0</span>
+                </div>
+                <div id="player-2-score" class="flex justify-between items-center p-2 bg-gray-700 border border-gray-500 rounded">
+                    <span class="font-medium text-black">Player 2</span>
+                    <span class="font-medium text-black">0</span>
+                </div>
+                <div id="player-3-score" class="flex justify-between items-center p-2 bg-gray-700 border border-gray-500 rounded">
+                    <span class="font-medium text-black">Player 3</span>
+                    <span class="font-medium text-black">0</span>
+                </div>
+                <div id="player-4-score" class="flex justify-between items-center p-2 bg-gray-700 border border-gray-500 rounded">
+                    <span class="font-medium text-black">Player 4</span>
+                    <span class="font-medium text-black">0</span>
+                </div>
+            </div>
+
+            <!-- Game Log -->
+            <div class="mt-4">
+                <h3 class="text-lg font-semibold text-gray-300 mb-2">Game Log</h3>
+                <div id="game-log" class="h-32 bg-gray-900 border border-gray-600 rounded p-2 overflow-y-auto text-sm text-gray-300">
+                    <div>Game started. Waiting for Player 1...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center: Board & Rack -->
+        <div class="w-full lg:w-auto flex flex-col items-center gap-4 order-1 lg:order-2">
+            <!-- Scrabble Board -->
+            <div id="scrabble-board">
+                <!-- 15x15 grid will be generated by JavaScript -->
+            </div>
+
+            <!-- Player Rack -->
+            <div id="player-rack" class="w-full max-w-md p-2 flex justify-center items-center gap-2 h-20">
+                <!-- Player's 7 tiles will be generated by JavaScript -->
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-4">
+                <button id="btn-submit" class="px-6 py-3 bg-green-600 text-white font-bold rounded-lg shadow hover:bg-green-700 transition duration-200">Play Word</button>
+                <button id="btn-pass" class="px-4 py-2 bg-yellow-500 text-white font-bold rounded-lg shadow hover:bg-yellow-600 transition duration-200">Pass</button>
+                <button id="btn-swap" class="px-4 py-2 bg-blue-500 text-white font-bold rounded-lg shadow hover:bg-blue-600 transition duration-200">Swap</button>
+                <button id="btn-recall" class="px-4 py-2 bg-red-500 text-white font-bold rounded-lg shadow hover:bg-red-600 transition duration-200">Recall Tiles</button>
+            </div>
+        </div>
+
+        <!-- Right Panel: Letter Bag -->
+        <div class="w-full lg:w-1/4 bg-gray-800 p-4 rounded-lg shadow-md border border-gray-700 order-3 lg:order-3">
+            <h2 class="text-2xl font-bold text-gray-100 mb-4">Letter Bag</h2>
+            
+            <!-- Total remaining tiles -->
+            <div class="mb-4 p-3 bg-gray-900 border border-gray-600 rounded-lg">
+                <div class="text-sm font-medium text-gray-400">Total Remaining</div>
+                <div id="bag-total-count" class="text-2xl font-bold text-blue-400">100</div>
+            </div>
+
+            <!-- Letter breakdown -->
+            <div class="space-y-2 max-h-96 overflow-y-auto">
+                <h3 class="text-lg font-semibold text-gray-300 mb-2">Letter Breakdown</h3>
+                <div id="letter-breakdown" class="grid grid-cols-3 gap-2 text-sm">
+                    <!-- Letter counts will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Add Socket.io client library -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="module" src="main.js"></script>
+</body>
+</html>

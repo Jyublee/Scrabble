@@ -1,0 +1,16 @@
+{
+  "name": "scrabble-lan",
+  "version": "1.0.0",
+  "description": "LAN-based Scrabble game for up to 4 players",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.4"
+  },
+  "devDependencies": {}
+}
