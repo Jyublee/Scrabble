@@ -147,6 +147,61 @@ The `assets/` folder is prepared for future enhancements:
 npm start
 ```
 
+## 🌐 Playing with Friends Online
+
+### Using ngrok for Remote Play
+
+To play with friends who aren't on your local network, we recommend using **ngrok** to create a secure tunnel to your local server:
+
+#### 1. Install ngrok
+```bash
+# Download from https://ngrok.com or use package managers:
+# macOS with Homebrew:
+brew install ngrok
+
+# Windows with Chocolatey:
+choco install ngrok
+
+# Or download directly from https://ngrok.com/download
+```
+
+#### 2. Start Your Scrabble Server
+```bash
+npm start
+```
+Your server will be running on `http://localhost:3000`
+
+#### 3. Create Public Tunnel
+In a new terminal window:
+```bash
+ngrok http 3000
+```
+
+#### 4. Share the Public URL
+ngrok will provide a public URL like:
+```
+https://abc123.ngrok.io
+```
+
+**Share this URL with your friends** - they can open it in their browser to join your game!
+
+#### 5. Game Setup
+1. **Host**: You start the game and configure timer settings
+2. **Friends**: They join using the ngrok URL
+3. **Play**: Enjoy real-time multiplayer Scrabble!
+
+#### Benefits of Using ngrok:
+- ✅ **No Router Configuration**: No need to mess with port forwarding
+- ✅ **Secure HTTPS**: All traffic is encrypted
+- ✅ **Easy Sharing**: Just send one URL to friends
+- ✅ **Works Anywhere**: Friends can join from any internet connection
+- ✅ **Free Tier Available**: Basic usage is free
+
+#### Pro Tips:
+- Keep the ngrok terminal window open during play
+- The free ngrok URL changes each restart - consider upgrading for persistent URLs
+- Test the connection yourself first by opening the ngrok URL in an incognito window
+
 ### File Dependencies
 - All JavaScript files use ES6 modules
 - Clear import/export structure

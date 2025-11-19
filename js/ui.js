@@ -220,19 +220,11 @@ export class UIManager {
     // Game state updates
     updateGameUI(gameState, tileBagBreakdown = null) {
         console.log('🎮 Updating game UI with state:', gameState);
-        this.updateTilesRemaining(gameState.tileBag?.length || 0);
         this.updateCurrentPlayer(gameState.players?.[gameState.currentPlayer]?.name || 'Unknown');
         this.updateButtonStates(gameState);
         // Use the separate tileBagBreakdown parameter if provided, otherwise look for it in gameState
         const breakdown = tileBagBreakdown || gameState.tileBagBreakdown || {};
         this.updateLetterBagDisplay(breakdown);
-    }
-
-    updateTilesRemaining(count) {
-        const tilesRemaining = document.getElementById('tiles-remaining');
-        if (tilesRemaining) {
-            tilesRemaining.textContent = count;
-        }
     }
 
     updateCurrentPlayer(playerName) {
@@ -250,31 +242,45 @@ export class UIManager {
             const myPlayerId = this.networkManager.getCurrentPlayerId();
             const myPlayerIndex = gameRoomState.players.findIndex(p => p.id === myPlayerId);
             
-            // Only show timer countdown if it's my turn
-            if (data.currentPlayer === myPlayerIndex) {
-                this.currentTimer = data.timeRemaining;
-                this.maxTimer = data.maxTime;
-                this.updateTimerDisplay();
-            } else {
-                // Hide timer display when it's not my turn
-                this.hideTimerDisplay();
-            }
+            // Always update timer data
+            this.currentTimer = data.timeRemaining;
+            this.maxTimer = data.maxTime;
+            
+            // Determine whose turn it is
+            const currentPlayerName = gameRoomState.players[data.currentPlayer]?.name || 'Unknown Player';
+            const isMyTurn = data.currentPlayer === myPlayerIndex;
+            
+            // Update timer display with context
+            this.updateTimerDisplay(isMyTurn, currentPlayerName);
         }
     }
 
     handleTimerExpired(data) {
         console.log('⏱️ Timer expired for player:', data.playerName);
         this.currentTimer = 0;
-        this.updateTimerDisplay();
+        
+        // Check if it was my turn or someone else's
+        const gameRoomState = this.networkManager.getGameRoomState();
+        const myPlayerId = this.networkManager.getCurrentPlayerId();
+        const myPlayerIndex = gameRoomState.players.findIndex(p => p.id === myPlayerId);
+        const wasMyTurn = data.currentPlayer === myPlayerIndex;
+        
+        this.updateTimerDisplay(wasMyTurn, data.playerName);
         
         // Show notification
-        this.log(`⏰ Time's up! ${data.playerName}'s turn was skipped.`);
+        if (wasMyTurn) {
+            this.log(`⏰ Time's up! Your turn was skipped.`);
+        } else {
+            this.log(`⏰ Time's up! ${data.playerName}'s turn was skipped.`);
+        }
     }
 
-    updateTimerDisplay() {
+    updateTimerDisplay(isMyTurn = true, currentPlayerName = '') {
         const timerElement = document.getElementById('timer-countdown');
         const progressElement = document.getElementById('timer-progress');
         const timerDisplayElement = document.getElementById('turn-timer-display');
+        const timerLabelElement = document.getElementById('timer-label');
+        const timerPlayerInfoElement = document.getElementById('timer-player-info');
         
         if (this.maxTimer === 0) {
             // No timer set
@@ -289,7 +295,18 @@ export class UIManager {
             const seconds = this.currentTimer % 60;
             timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
             
-            // Change color based on remaining time
+            // Update labels and info based on whose turn it is
+            if (isMyTurn) {
+                timerLabelElement.textContent = 'Your Time Remaining';
+                timerPlayerInfoElement.textContent = 'It\'s your turn!';
+                timerPlayerInfoElement.className = 'text-xs text-blue-400 mt-1 font-medium';
+            } else {
+                timerLabelElement.textContent = 'Current Player\'s Time';
+                timerPlayerInfoElement.textContent = `${currentPlayerName} is thinking...`;
+                timerPlayerInfoElement.className = 'text-xs text-gray-400 mt-1';
+            }
+            
+            // Change color based on remaining time and whose turn it is
             if (this.currentTimer <= 30) {
                 timerElement.className = 'text-2xl font-bold text-red-500';
                 progressElement.className = 'bg-red-500 h-2 rounded-full transition-all duration-1000';
@@ -297,8 +314,13 @@ export class UIManager {
                 timerElement.className = 'text-2xl font-bold text-orange-400';
                 progressElement.className = 'bg-orange-400 h-2 rounded-full transition-all duration-1000';
             } else {
-                timerElement.className = 'text-2xl font-bold text-yellow-400';
-                progressElement.className = 'bg-yellow-400 h-2 rounded-full transition-all duration-1000';
+                if (isMyTurn) {
+                    timerElement.className = 'text-2xl font-bold text-yellow-400';
+                    progressElement.className = 'bg-yellow-400 h-2 rounded-full transition-all duration-1000';
+                } else {
+                    timerElement.className = 'text-2xl font-bold text-blue-400';
+                    progressElement.className = 'bg-blue-400 h-2 rounded-full transition-all duration-1000';
+                }
             }
             
             // Update progress bar
@@ -310,21 +332,11 @@ export class UIManager {
     }
 
     hideTimerDisplay() {
-        const timerElement = document.getElementById('timer-countdown');
-        const progressElement = document.getElementById('timer-progress');
         const timerDisplayElement = document.getElementById('turn-timer-display');
         
-        // Show timer area but with "Waiting..." message
-        if (timerDisplayElement && this.maxTimer > 0) {
-            timerDisplayElement.style.display = 'block';
-            if (timerElement) {
-                timerElement.textContent = 'Waiting...';
-                timerElement.className = 'text-lg font-normal text-gray-400';
-            }
-            if (progressElement) {
-                progressElement.style.width = '0%';
-                progressElement.className = 'bg-gray-600 h-2 rounded-full transition-all duration-1000';
-            }
+        // Hide timer completely when no timer is set
+        if (timerDisplayElement) {
+            timerDisplayElement.style.display = 'none';
         }
     }
 

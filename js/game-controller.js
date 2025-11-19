@@ -296,15 +296,8 @@ export class GameController {
             this.uiManager.updateLetterBagDisplay(data.tileBagBreakdown);
         }
         
-        // Reset timer display for turn change
-        const myPlayerId = this.networkManager.getCurrentPlayerId();
-        const gameRoomState = this.networkManager.getGameRoomState();
-        const myPlayerIndex = gameRoomState.players.findIndex(p => p.id === myPlayerId);
-        
-        if (data.currentPlayer !== myPlayerIndex) {
-            // Not my turn, hide timer countdown
-            this.uiManager.hideTimerDisplay();
-        }
+        // The timer display will be updated automatically when the next timer update comes
+        // No need to hide it manually anymore
         
         this.uiManager.log(`It's now ${data.playerName}'s turn`);
     }

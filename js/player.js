@@ -64,12 +64,6 @@ export class NetworkPlayer {
         
         console.log(`${this.name} drew tiles:`, this.rack.slice(-1));
         this.updateRackDisplay();
-        
-        // Update tiles remaining display
-        const tilesRemaining = document.getElementById('tiles-remaining');
-        if (tilesRemaining) {
-            tilesRemaining.textContent = tileBag.length;
-        }
     }
 
     updateScoreDisplay() {

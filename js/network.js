@@ -165,7 +165,7 @@ export class NetworkManager {
             const playerDiv = document.createElement('div');
             playerDiv.className = 'flex items-center justify-between p-2 bg-gray-100 rounded';
             playerDiv.innerHTML = `
-                <span class="font-medium">Player ${i + 1}</span>
+                <span class="font-medium text-gray-900">Player ${i + 1}</span>
                 <span class="text-sm text-gray-600">Connected</span>
             `;
             playersList.appendChild(playerDiv);
