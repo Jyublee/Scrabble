@@ -1,36 +1,31 @@
 // Game Logic - Validation, Scoring, Word Finding
-import { BOARD_SIZE, CENTER_POSITION, BINGO_BONUS, DICTIONARY_API } from './constants.js';
+import { BOARD_SIZE, CENTER_POSITION, BINGO_BONUS } from './constants.js';
+import { dictionaryLoader } from './dictionary-loader.js';
 
 export class GameLogic {
     constructor(boardManager) {
         this.boardManager = boardManager;
     }
 
-    // Word validation using Dictionary API
+    // Word validation using local dictionary
     async validateWord(word) {
         if (!word || word.length < 2) return false;
 
-        try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), DICTIONARY_API.TIMEOUT);
-            
-            const response = await fetch(
-                `${DICTIONARY_API.BASE_URL}${word.toLowerCase()}`,
-                { signal: controller.signal }
-            );
-            
-            clearTimeout(timeoutId);
-            
-            if (response.ok) {
-                const data = await response.json();
-                return data.length > 0;
-            }
-            return false;
-        } catch (error) {
-            console.warn(`⚠️ Dictionary lookup failed for "${word}":`, error.message);
-            // Return true on network errors (offline mode)
-            return true;
+        // Ensure dictionary is loaded
+        if (!dictionaryLoader.isLoaded) {
+            await dictionaryLoader.loadDictionary();
         }
+
+        // Check if word exists in dictionary
+        const isValid = dictionaryLoader.isValidWord(word);
+        
+        if (isValid) {
+            console.log(`✅ "${word}" is a valid word`);
+        } else {
+            console.log(`❌ "${word}" is NOT a valid word`);
+        }
+        
+        return isValid;
     }
 
     // Find all words formed by the current placement

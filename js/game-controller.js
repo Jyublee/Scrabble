@@ -5,6 +5,7 @@ import { BoardManager } from './board.js';
 import { GameLogic } from './game-logic.js';
 import { UIManager } from './ui.js';
 import { GAME_EVENTS, TILE_BAG } from './constants.js';
+import { dictionaryLoader } from './dictionary-loader.js';
 
 export class GameController {
     constructor() {
@@ -25,8 +26,33 @@ export class GameController {
         this.fullTileBag = [];
     }
 
-    initialize() {
+    async initialize() {
         console.log("🎮 Loading Multiplayer Scrabble Game...");
+        
+        // Show loading status
+        const statusElement = document.getElementById('connection-status');
+        if (statusElement) {
+            statusElement.textContent = 'Loading dictionary...';
+            statusElement.className = 'text-center text-sm text-yellow-400 mt-4';
+        }
+        
+        // Load dictionary first
+        try {
+            await dictionaryLoader.loadDictionary();
+            const stats = dictionaryLoader.getStats();
+            if (statusElement) {
+                statusElement.textContent = `Dictionary loaded (${stats.wordCount.toLocaleString()} words)`;
+                statusElement.className = 'text-center text-sm text-green-400 mt-4';
+            }
+        } catch (error) {
+            console.error("❌ Failed to load dictionary:", error);
+            if (statusElement) {
+                statusElement.textContent = 'Failed to load dictionary!';
+                statusElement.className = 'text-center text-sm text-red-400 mt-4';
+            }
+            alert("Failed to load word dictionary. Please refresh the page.");
+            return;
+        }
         
         // Initialize all modules
         this.networkManager.initialize();

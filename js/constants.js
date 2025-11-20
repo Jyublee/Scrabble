@@ -56,12 +56,6 @@ export const MULTIPLIERS = {
     [SQUARE_TYPES.NORMAL]: { word: 1, letter: 1 }
 };
 
-// Dictionary API settings
-export const DICTIONARY_API = {
-    BASE_URL: 'https://api.dictionaryapi.dev/api/v2/entries/en/',
-    TIMEOUT: 3000
-};
-
 // Game events
 export const GAME_EVENTS = {
     // Socket events
