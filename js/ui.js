@@ -95,38 +95,23 @@ export class UIManager {
         const tile = JSON.parse(tileData);
         
         // If tile is from board, recall it to rack
-        if (tile.fromBoard) {
-            this.recallTileToRack(tile);
+        if (tile.fromBoard && tile.isCurrentTurn) {
+            this.recallSingleTileToRack(tile);
         }
     }
 
-    recallTileToRack(tileData) {
-        // Find and remove the tile from the board
-        const placedTiles = this.boardManager.getPlacedTiles();
-        const tileIndex = placedTiles.findIndex(tile => 
-            tile.row === tileData.row && tile.col === tileData.col
-        );
+    recallSingleTileToRack(tileData) {
+        console.log('🔄 Recalling single tile to rack:', tileData);
         
-        if (tileIndex !== -1) {
-            const tile = placedTiles[tileIndex];
-            
-            // Remove from board
-            const square = document.querySelector(`[data-r="${tile.row}"][data-c="${tile.col}"]`);
-            if (square) {
-                square.innerHTML = '';
-                // Restore square text if needed
-                const squareType = this.boardManager.getSquareText(tile.row, tile.col);
-                if (squareType) {
-                    square.textContent = squareType;
-                }
-            }
-            
-            // Remove from placed tiles
-            placedTiles.splice(tileIndex, 1);
-            
-            // Add back to rack (this would need rack management)
-            this.dispatchEvent('tileRecalled', { tile });
-        }
+        // Dispatch event to game controller to handle the recall properly
+        this.dispatchEvent('singleTileRecalled', { 
+            row: parseInt(tileData.row),
+            col: parseInt(tileData.col),
+            letter: tileData.letter,
+            points: parseInt(tileData.points),
+            isBlank: tileData.isBlank || false,
+            designatedLetter: tileData.designatedLetter
+        });
     }
 
     recallTiles() {

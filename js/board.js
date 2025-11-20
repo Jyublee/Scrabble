@@ -102,6 +102,11 @@ export class BoardManager {
                     if (tileIndex !== -1) {
                         this.placedTiles.splice(tileIndex, 1);
                     }
+                    // Restore the multiplier label on the source square
+                    const squareType = BOARD_LAYOUT[tile.row][tile.col];
+                    if (squareType && squareType !== SQUARE_TYPES.START) {
+                        sourceSquare.textContent = this.getSquareText(squareType);
+                    }
                 }
             }
         }
@@ -116,8 +121,8 @@ export class BoardManager {
             return false;
         }
 
-        // Clear target square content
-        targetSquare.textContent = '';
+        // Clear target square content (using innerHTML to properly clear child elements)
+        targetSquare.innerHTML = '';
         
         // For blank tiles, determine the display letter and actual letter
         const displayLetter = tile.isBlank && tile.designatedLetter ? tile.designatedLetter : tile.letter;

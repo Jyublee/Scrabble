@@ -110,6 +110,10 @@ export class GameController {
             this.handleTilesRecalled(event.detail.tiles);
         });
         
+        document.addEventListener('singleTileRecalled', (event) => {
+            this.handleSingleTileRecalled(event.detail);
+        });
+        
         document.addEventListener('exchangeTiles', (event) => {
             this.performExchange(event.detail.indices);
         });
@@ -413,6 +417,32 @@ export class GameController {
         const localPlayer = this.getLocalPlayer();
         if (!localPlayer) return;
         
+        // First, recall any tiles that are currently placed on the board
+        const placedTiles = this.boardManager.getPlacedTiles();
+        if (placedTiles.length > 0) {
+            console.log(`🔄 Recalling ${placedTiles.length} tiles from board before swap`);
+            
+            // Recall all tiles from board back to rack
+            const recalledTiles = this.boardManager.recallTiles();
+            
+            // Add recalled tiles back to player's rack
+            recalledTiles.forEach(tile => {
+                const tileForRack = {
+                    letter: tile.letter,
+                    points: tile.points,
+                    isBlank: tile.isBlank || false,
+                    designatedLetter: tile.designatedLetter
+                };
+                localPlayer.rack.push(tileForRack);
+            });
+            
+            // Update the rack display
+            localPlayer.updateRackDisplay();
+            
+            this.uiManager.log(`Recalled ${recalledTiles.length} tiles from board for swap`);
+        }
+        
+        // Now show the exchange interface with all tiles in the rack
         this.uiManager.showExchangeInterface(localPlayer.rack);
     }
 
@@ -442,13 +472,70 @@ export class GameController {
         this.uiManager.log(`Exchanged ${exchangedTiles.length} tiles`);
     }
 
+    handleSingleTileRecalled(tileData) {
+        console.log('🔄 Handling single tile recall:', tileData);
+        
+        const localPlayer = this.getLocalPlayer();
+        if (!localPlayer) return;
+        
+        const { row, col, letter, points, isBlank, designatedLetter } = tileData;
+        
+        // Remove tile from board visual
+        const square = document.querySelector(`[data-r="${row}"][data-c="${col}"]`);
+        if (square) {
+            // Remove the tile element
+            const tileElement = square.querySelector('.tile');
+            if (tileElement) {
+                tileElement.remove();
+            }
+            
+            // Restore multiplier label using boardManager's method
+            const squareType = this.boardManager.getSquareType(row, col);
+            if (squareType && squareType !== 'st') {
+                square.textContent = this.boardManager.getSquareText(squareType);
+            }
+        }
+        
+        // Remove from board state
+        this.boardManager.gameBoard[row][col] = null;
+        
+        // Remove from placed tiles array
+        const placedTiles = this.boardManager.getPlacedTiles();
+        const tileIndex = placedTiles.findIndex(t => 
+            t.row === row && t.col === col
+        );
+        if (tileIndex !== -1) {
+            placedTiles.splice(tileIndex, 1);
+        }
+        
+        // Create proper tile object for the rack
+        const tileForRack = {
+            letter: letter,
+            points: points,
+            isBlank: isBlank,
+            designatedLetter: designatedLetter
+        };
+        
+        // Add tile back to rack at the end
+        localPlayer.rack.push(tileForRack);
+        localPlayer.updateRackDisplay();
+        
+        console.log(`✅ Tile ${letter} recalled from [${row}, ${col}] back to rack`);
+    }
+
     handleTilesRecalled(tiles) {
         const localPlayer = this.getLocalPlayer();
         if (!localPlayer) return;
         
         // Add tiles back to rack
         tiles.forEach(tile => {
-            localPlayer.addTileToRack(tile.letter);
+            const tileForRack = {
+                letter: tile.letter,
+                points: tile.points,
+                isBlank: tile.isBlank || false,
+                designatedLetter: tile.designatedLetter
+            };
+            localPlayer.rack.push(tileForRack);
         });
         
         localPlayer.updateRackDisplay();

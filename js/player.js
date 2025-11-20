@@ -36,10 +36,9 @@ export class NetworkPlayer {
     }
 
     addTileToRack(tile) {
-        if (this.rack.length < RACK_SIZE) {
-            this.rack.push(tile);
-            this.updateRackDisplay();
-        }
+        // Allow adding tiles even if rack is full (for recalling tiles from board)
+        this.rack.push(tile);
+        this.updateRackDisplay();
     }
 
     removeTileFromRack(letter) {
@@ -94,18 +93,30 @@ export class NetworkPlayer {
             // Handle both string format (legacy) and object format (from server)
             const letter = typeof tile === 'string' ? tile : tile.letter;
             const points = typeof tile === 'string' ? (TILE_BAG[tile]?.points || 0) : tile.points;
+            const isBlank = typeof tile === 'object' ? tile.isBlank : false;
+            const designatedLetter = typeof tile === 'object' ? tile.designatedLetter : null;
             
-            const tileElement = this.createTileElement(letter, points);
+            const tileElement = this.createTileElement(letter, points, isBlank, designatedLetter);
             tileElement.dataset.rackIndex = index;
             rackElement.appendChild(tileElement);
         });
     }
 
-    createTileElement(letter, points) {
+    createTileElement(letter, points, isBlank = false, designatedLetter = null) {
         const tile = document.createElement('div');
         tile.className = 'tile';
         tile.draggable = true;
-        tile.textContent = letter === 'BLANK' ? '' : letter;
+        
+        // Handle blank tiles with designated letters
+        if (isBlank && designatedLetter) {
+            tile.textContent = designatedLetter;
+            tile.dataset.isBlank = 'true';
+            tile.dataset.designatedLetter = designatedLetter;
+            tile.classList.add('blank-tile-designated');
+        } else {
+            tile.textContent = letter === 'BLANK' ? '' : letter;
+        }
+        
         tile.dataset.letter = letter;
         tile.dataset.points = points;
         
@@ -118,14 +129,14 @@ export class NetworkPlayer {
                 return false;
             }
             
-            const isBlank = letter === 'BLANK' || e.target.dataset.isBlank === 'true';
-            const designatedLetter = e.target.dataset.designatedLetter;
+            const tileIsBlank = letter === 'BLANK' || e.target.dataset.isBlank === 'true';
+            const tileDesignatedLetter = e.target.dataset.designatedLetter;
             
             const tileData = {
                 letter: letter,
                 points: points,
-                isBlank: isBlank,
-                designatedLetter: designatedLetter,
+                isBlank: tileIsBlank,
+                designatedLetter: tileDesignatedLetter,
                 rackIndex: e.target.dataset.rackIndex,
                 fromBoard: false
             };
