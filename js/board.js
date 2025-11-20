@@ -327,6 +327,18 @@ export class BoardManager {
         this.placedTiles = [];
     }
 
+    removePlacedTile(row, col) {
+        const tileIndex = this.placedTiles.findIndex(t => 
+            t.row === row && t.col === col
+        );
+        if (tileIndex !== -1) {
+            this.placedTiles.splice(tileIndex, 1);
+            console.log(`🗑️ Removed tile from placedTiles array at [${row}, ${col}]`);
+            return true;
+        }
+        return false;
+    }
+
     makeCurrentTurnTilesPermanent() {
         // Find all tiles placed in current turn and make them permanent
         const currentTurnTiles = document.querySelectorAll('.current-turn-tile');

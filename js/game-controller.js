@@ -499,14 +499,8 @@ export class GameController {
         // Remove from board state
         this.boardManager.gameBoard[row][col] = null;
         
-        // Remove from placed tiles array
-        const placedTiles = this.boardManager.getPlacedTiles();
-        const tileIndex = placedTiles.findIndex(t => 
-            t.row === row && t.col === col
-        );
-        if (tileIndex !== -1) {
-            placedTiles.splice(tileIndex, 1);
-        }
+        // Remove from placed tiles array (use the boardManager method to modify the actual array)
+        this.boardManager.removePlacedTile(row, col);
         
         // Create proper tile object for the rack
         const tileForRack = {

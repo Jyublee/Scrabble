@@ -436,8 +436,8 @@ export class UIManager {
         overlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
         overlay.innerHTML = `
             <div class="bg-white p-6 rounded-lg shadow-lg max-w-md w-full mx-4">
-                <h2 class="text-2xl font-bold mb-4">Exchange Tiles</h2>
-                <p class="text-gray-600 mb-4">Select tiles to exchange:</p>
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">Exchange Tiles</h2>
+                <p class="text-gray-700 mb-4">Select tiles to exchange:</p>
                 <div id="exchange-tiles" class="flex flex-wrap gap-2 mb-4 justify-center">
                     <!-- Tiles will be added here -->
                 </div>
