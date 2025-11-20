@@ -258,6 +258,12 @@ export class NetworkManager {
     showGameArea() {
         document.getElementById('lobby-screen').classList.add('hidden');
         document.getElementById('game-area').classList.remove('hidden');
+        document.getElementById('game-title').classList.remove('hidden');
+        // Hide the lobby title (first .game-title-container)
+        const lobbyTitle = document.querySelector('body > .game-title-container');
+        if (lobbyTitle) {
+            lobbyTitle.classList.add('hidden');
+        }
     }
 
     // Getters

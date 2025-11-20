@@ -8,36 +8,51 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="bg-gray-900 flex flex-col items-center justify-center min-h-screen p-4">
+<body class="flex flex-col items-center justify-center min-h-screen p-4" style="background: linear-gradient(135deg, #2c1810 0%, #1a0f0a 100%);">
+
+    <!-- Game Title with Scrabble Tiles (Above Lobby) -->
+    <div class="game-title-container">
+        <div class="scrabble-title">
+            <div class="title-tile tw-tile">
+                <img src="assets/textures/TW.png" alt="TW" class="tile-multiplier-bg">
+            </div>
+            <div class="title-tile">S</div>
+            <div class="title-tile">C</div>
+            <div class="title-tile">R</div>
+            <div class="title-tile">A</div>
+            <div class="title-tile">B</div>
+            <div class="title-tile">B</div>
+            <div class="title-tile">L</div>
+            <div class="title-tile">E</div>
+        </div>
+    </div>
 
     <!-- Lobby Screen -->
-    <div id="lobby-screen" class="w-full max-w-md mx-auto bg-gray-800 p-6 rounded-lg shadow-md border border-gray-700">
-        <h1 class="text-3xl font-bold text-center text-gray-100 mb-6">Scrabble LAN</h1>
-        
+    <div id="lobby-screen" class="w-full max-w-md mx-auto p-8 rounded-xl shadow-2xl" style="background: linear-gradient(145deg, #3d2817 0%, #2a1a0f 100%); border: 3px solid #8b6914;">
         <!-- Player Name Input -->
         <div class="mb-6">
-            <label for="player-name" class="block text-sm font-medium text-gray-300 mb-2">Your Name:</label>
+            <label for="player-name" class="block text-sm font-bold text-amber-200 mb-2" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Your Name:</label>
             <input type="text" id="player-name" placeholder="Enter your name" 
-                   class="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400">
+                   class="w-full px-4 py-3 rounded-lg focus:outline-none focus:ring-3 transition-all" style="background: linear-gradient(to bottom, #fef3c7 0%, #fde68a 100%); border: 2px solid #ca8a04; color: #451a03; font-weight: 600; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);" placeholder="Enter your name">
         </div>
         
         <!-- Join Game Button -->
-        <button id="join-game-btn" class="w-full px-4 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition duration-200 mb-6">
+        <button id="join-game-btn" class="w-full px-4 py-3 font-bold rounded-lg transition duration-200 mb-6" style="background: linear-gradient(to bottom, #059669 0%, #047857 100%); color: white; border: 2px solid #065f46; box-shadow: 0 4px 6px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2); text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">
             Join Game
         </button>
         
         <!-- Players List -->
         <div class="mb-6">
-            <h3 class="text-lg font-semibold text-gray-300 mb-3">Players in Lobby:</h3>
-            <div id="players-list" class="space-y-2 min-h-[100px]">
-                <div class="text-gray-500 text-center italic">No players yet...</div>
+            <h3 class="text-lg font-bold text-amber-200 mb-3" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Players in Lobby:</h3>
+            <div id="players-list" class="space-y-2 min-h-[100px] p-3 rounded-lg" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(139,105,20,0.3);">
+                <div class="text-amber-300 text-center italic" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">No players yet...</div>
             </div>
         </div>
 
         <!-- Timer Setting (only visible to host) -->
         <div id="timer-settings" class="mb-6 hidden">
-            <h3 class="text-lg font-semibold text-gray-300 mb-3">Turn Timer:</h3>
-            <select id="turn-timer-select" class="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <h3 class="text-lg font-bold text-amber-200 mb-3" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Turn Timer:</h3>
+            <select id="turn-timer-select" class="w-full px-4 py-3 rounded-lg focus:outline-none focus:ring-2 transition-all" style="background: linear-gradient(to bottom, #fef3c7 0%, #fde68a 100%); border: 2px solid #ca8a04; color: #451a03; font-weight: 600; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
                 <option value="0">No Timer</option>
                 <option value="60">1 Minute</option>
                 <option value="120">2 Minutes</option>
@@ -48,13 +63,30 @@
         </div>
         
         <!-- Start Game Button (only visible to first player) -->
-        <button id="start-game-btn" class="w-full px-4 py-2 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition duration-200 hidden">
+        <button id="start-game-btn" class="w-full px-4 py-3 font-bold rounded-lg transition duration-200 hidden" style="background: linear-gradient(to bottom, #059669 0%, #047857 100%); color: white; border: 2px solid #065f46; box-shadow: 0 4px 6px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2); text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">
             Start Game (2-4 players)
         </button>
         
         <!-- Connection Status -->
-        <div id="connection-status" class="text-center text-sm text-gray-400 mt-4">
+        <div id="connection-status" class="text-center text-sm mt-4 font-medium" style="color: #86efac; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">
             Connecting to server...
+        </div>
+    </div>
+
+    <!-- Game Title in Game Screen (initially hidden) -->
+    <div id="game-title" class="game-title-container hidden">
+        <div class="scrabble-title">
+            <div class="title-tile tw-tile">
+                <img src="assets/textures/TW.png" alt="TW" class="tile-multiplier-bg">
+            </div>
+            <div class="title-tile">S</div>
+            <div class="title-tile">C</div>
+            <div class="title-tile">R</div>
+            <div class="title-tile">A</div>
+            <div class="title-tile">B</div>
+            <div class="title-tile">B</div>
+            <div class="title-tile">L</div>
+            <div class="title-tile">E</div>
         </div>
     </div>
 
@@ -62,50 +94,50 @@
     <div id="game-area" class="w-full max-w-6xl mx-auto flex flex-col lg:flex-row items-start justify-center gap-6 hidden">
 
         <!-- Left Panel: Scoreboard & Info -->
-        <div class="w-full lg:w-1/4 bg-gray-800 p-4 rounded-lg shadow-md border border-gray-700 order-2 lg:order-1">
-            <h2 class="text-2xl font-bold text-gray-100 mb-4">Game Info</h2>
+        <div class="w-full lg:w-1/4 p-4 rounded-xl shadow-2xl order-2 lg:order-1" style="background: linear-gradient(145deg, #3d2817 0%, #2a1a0f 100%); border: 3px solid #8b6914;">
+            <h2 class="text-2xl font-bold mb-4" style="color: #fbbf24; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">Game Info</h2>
             
             <!-- Timer -->
             <div class="mb-4">
-                <div class="text-sm font-medium text-gray-400">Current Player</div>
-                <div id="current-player" class="text-lg font-bold text-blue-400">Waiting...</div>
+                <div class="text-sm font-medium" style="color: #fcd34d;">Current Player</div>
+                <div id="current-player" class="text-lg font-bold" style="color: #86efac; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Waiting...</div>
             </div>
 
             <!-- Turn Timer -->
             <div class="mb-4" id="turn-timer-display">
-                <div class="text-sm font-medium text-gray-400" id="timer-label">Time Remaining</div>
-                <div id="timer-countdown" class="text-2xl font-bold text-yellow-400">--:--</div>
-                <div class="w-full bg-gray-700 rounded-full h-2 mt-2">
-                    <div id="timer-progress" class="bg-yellow-400 h-2 rounded-full transition-all duration-1000" style="width: 100%"></div>
+                <div class="text-sm font-medium" id="timer-label" style="color: #fcd34d;">Time Remaining</div>
+                <div id="timer-countdown" class="text-2xl font-bold" style="color: #fbbf24; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">--:--</div>
+                <div class="w-full rounded-full h-2 mt-2" style="background: rgba(0,0,0,0.3);">
+                    <div id="timer-progress" class="h-2 rounded-full transition-all duration-1000" style="width: 100%; background: linear-gradient(to right, #fbbf24, #f59e0b);"></div>
                 </div>
-                <div class="text-xs text-gray-500 mt-1" id="timer-player-info"></div>
+                <div class="text-xs mt-1" id="timer-player-info" style="color: #fde68a;"></div>
             </div>
 
             <!-- Scores -->
             <div class="space-y-3">
-                <h3 class="text-lg font-semibold text-gray-300">Scoreboard</h3>
-                <div id="player-1-score" class="flex justify-between items-center p-2 bg-blue-800 border border-blue-600 rounded">
-                    <span class="font-medium text-black">Player 1 (You)</span>
-                    <span class="font-medium text-black">0</span>
+                <h3 class="text-lg font-bold" style="color: #fbbf24; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Scoreboard</h3>
+                <div id="player-1-score" class="flex justify-between items-center p-3 rounded-lg" style="background: linear-gradient(to right, #065f46, #047857); border: 2px solid #059669; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                    <span class="font-bold" style="color: #d1fae5; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Player 1 (You)</span>
+                    <span class="font-bold" style="color: #d1fae5; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">0</span>
                 </div>
-                <div id="player-2-score" class="flex justify-between items-center p-2 bg-gray-700 border border-gray-500 rounded">
-                    <span class="font-medium text-black">Player 2</span>
-                    <span class="font-medium text-black">0</span>
+                <div id="player-2-score" class="flex justify-between items-center p-3 rounded-lg" style="background: rgba(0,0,0,0.3); border: 2px solid #8b6914;">
+                    <span class="font-medium" style="color: #fde68a;">Player 2</span>
+                    <span class="font-medium" style="color: #fde68a;">0</span>
                 </div>
-                <div id="player-3-score" class="flex justify-between items-center p-2 bg-gray-700 border border-gray-500 rounded">
-                    <span class="font-medium text-black">Player 3</span>
-                    <span class="font-medium text-black">0</span>
+                <div id="player-3-score" class="flex justify-between items-center p-3 rounded-lg" style="background: rgba(0,0,0,0.3); border: 2px solid #8b6914;">
+                    <span class="font-medium" style="color: #fde68a;">Player 3</span>
+                    <span class="font-medium" style="color: #fde68a;">0</span>
                 </div>
-                <div id="player-4-score" class="flex justify-between items-center p-2 bg-gray-700 border border-gray-500 rounded">
-                    <span class="font-medium text-black">Player 4</span>
-                    <span class="font-medium text-black">0</span>
+                <div id="player-4-score" class="flex justify-between items-center p-3 rounded-lg" style="background: rgba(0,0,0,0.3); border: 2px solid #8b6914;">
+                    <span class="font-medium" style="color: #fde68a;">Player 4</span>
+                    <span class="font-medium" style="color: #fde68a;">0</span>
                 </div>
             </div>
 
             <!-- Game Log -->
             <div class="mt-4">
-                <h3 class="text-lg font-semibold text-gray-300 mb-2">Game Log</h3>
-                <div id="game-log" class="h-32 bg-gray-900 border border-gray-600 rounded p-2 overflow-y-auto text-sm text-gray-300">
+                <h3 class="text-lg font-bold mb-2" style="color: #fbbf24; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Game Log</h3>
+                <div id="game-log" class="h-32 rounded-lg p-3 overflow-y-auto text-sm" style="background: rgba(0,0,0,0.4); border: 2px solid rgba(139,105,20,0.3); color: #fde68a;">
                     <div>Game started. Waiting for Player 1...</div>
                 </div>
             </div>
@@ -119,32 +151,32 @@
             </div>
 
             <!-- Player Rack -->
-            <div id="player-rack" class="w-full max-w-md p-2 flex justify-center items-center gap-2 h-20">
+            <div id="player-rack" class="w-full max-w-md p-4 flex justify-center items-center gap-2 h-24 rounded-xl" style="background: linear-gradient(135deg, #3d2817 0%, #2a1a0f 100%); border: 3px solid #8b6914; box-shadow: 0 6px 12px rgba(0,0,0,0.3), inset 0 2px 4px rgba(0,0,0,0.2);">
                 <!-- Player's 7 tiles will be generated by JavaScript -->
             </div>
 
             <!-- Action Buttons -->
             <div class="flex gap-4">
-                <button id="btn-submit" class="px-6 py-3 bg-green-600 text-white font-bold rounded-lg shadow hover:bg-green-700 transition duration-200">Play Word</button>
-                <button id="btn-pass" class="px-4 py-2 bg-yellow-500 text-white font-bold rounded-lg shadow hover:bg-yellow-600 transition duration-200">Pass</button>
-                <button id="btn-swap" class="px-4 py-2 bg-blue-500 text-white font-bold rounded-lg shadow hover:bg-blue-600 transition duration-200">Swap</button>
-                <button id="btn-recall" class="px-4 py-2 bg-red-500 text-white font-bold rounded-lg shadow hover:bg-red-600 transition duration-200">Recall Tiles</button>
+                <button id="btn-submit" class="px-6 py-3 font-bold rounded-lg shadow transition duration-200" style="background: linear-gradient(to bottom, #059669 0%, #047857 100%); color: white; border: 2px solid #065f46; box-shadow: 0 4px 6px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2); text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Play Word</button>
+                <button id="btn-pass" class="px-4 py-2 font-bold rounded-lg shadow transition duration-200" style="background: linear-gradient(to bottom, #f59e0b 0%, #d97706 100%); color: white; border: 2px solid #b45309; box-shadow: 0 4px 6px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2); text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Pass</button>
+                <button id="btn-swap" class="px-4 py-2 font-bold rounded-lg shadow transition duration-200" style="background: linear-gradient(to bottom, #3b82f6 0%, #2563eb 100%); color: white; border: 2px solid #1d4ed8; box-shadow: 0 4px 6px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2); text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Swap</button>
+                <button id="btn-recall" class="px-4 py-2 font-bold rounded-lg shadow transition duration-200" style="background: linear-gradient(to bottom, #ef4444 0%, #dc2626 100%); color: white; border: 2px solid #b91c1c; box-shadow: 0 4px 6px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2); text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Recall Tiles</button>
             </div>
         </div>
 
         <!-- Right Panel: Letter Bag -->
-        <div class="w-full lg:w-1/4 bg-gray-800 p-4 rounded-lg shadow-md border border-gray-700 order-3 lg:order-3">
-            <h2 class="text-2xl font-bold text-gray-100 mb-4">Letter Bag</h2>
+        <div class="w-full lg:w-1/4 p-4 rounded-xl shadow-2xl order-3 lg:order-3" style="background: linear-gradient(145deg, #3d2817 0%, #2a1a0f 100%); border: 3px solid #8b6914;">
+            <h2 class="text-2xl font-bold mb-4" style="color: #fbbf24; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">Letter Bag</h2>
             
             <!-- Total remaining tiles -->
-            <div class="mb-4 p-3 bg-gray-900 border border-gray-600 rounded-lg">
-                <div class="text-sm font-medium text-gray-400">Total Remaining</div>
-                <div id="bag-total-count" class="text-2xl font-bold text-blue-400">100</div>
+            <div class="mb-4 p-4 rounded-lg" style="background: linear-gradient(to bottom, #1a0f0a, #0a0604); border: 2px solid #8b6914; box-shadow: inset 0 2px 8px rgba(0,0,0,0.5);">
+                <div class="text-sm font-bold" style="color: #fcd34d;">Total Remaining</div>
+                <div id="bag-total-count" class="text-3xl font-bold" style="color: #fbbf24; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">100</div>
             </div>
 
             <!-- Letter breakdown -->
             <div class="space-y-2 max-h-96 overflow-y-auto">
-                <h3 class="text-lg font-semibold text-gray-300 mb-2">Letter Breakdown</h3>
+                <h3 class="text-lg font-bold mb-2" style="color: #fbbf24; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Letter Breakdown</h3>
                 <div id="letter-breakdown" class="grid grid-cols-3 gap-2 text-sm">
                     <!-- Letter counts will be populated by JavaScript -->
                 </div>

@@ -233,16 +233,17 @@ export class UIManager {
 
     showLetterPickerModal(callback) {
         const overlay = document.createElement('div');
-        overlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+        overlay.className = 'fixed inset-0 flex items-center justify-center z-50';
+        overlay.style.background = 'rgba(0, 0, 0, 0.75)';
         overlay.innerHTML = `
-            <div class="bg-white p-6 rounded-lg shadow-lg max-w-md w-full mx-4">
-                <h2 class="text-2xl font-bold text-gray-900 mb-4">Choose a Letter</h2>
-                <p class="text-gray-700 mb-4">Select which letter this blank tile should represent:</p>
-                <div id="letter-picker-grid" class="grid grid-cols-7 gap-2 mb-4">
+            <div class="p-8 rounded-xl shadow-2xl max-w-md w-full mx-4" style="background: linear-gradient(145deg, #3d2817 0%, #2a1a0f 100%); border: 3px solid #8b6914;">
+                <h2 class="text-2xl font-bold mb-4" style="color: #fbbf24; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">Choose a Letter</h2>
+                <p class="mb-4 font-medium" style="color: #fde68a;">Select which letter this blank tile should represent:</p>
+                <div id="letter-picker-grid" class="grid grid-cols-7 gap-2 mb-6">
                     <!-- Letters will be added here -->
                 </div>
                 <div class="flex gap-2 justify-end">
-                    <button id="cancel-letter-picker" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">Cancel</button>
+                    <button id="cancel-letter-picker" class="px-5 py-3 font-bold rounded-lg transition duration-200" style="background: linear-gradient(to bottom, #6b7280 0%, #4b5563 100%); color: white; border: 2px solid #374151; box-shadow: 0 4px 6px rgba(0,0,0,0.3); text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Cancel</button>
                 </div>
             </div>
         `;
@@ -255,10 +256,26 @@ export class UIManager {
         
         for (let letter of alphabet) {
             const letterTile = document.createElement('div');
-            letterTile.className = 'tile cursor-pointer hover:bg-blue-200 transition-colors flex items-center justify-center text-2xl font-bold bg-yellow-100 border-2 border-yellow-600 rounded shadow-sm';
+            letterTile.className = 'tile cursor-pointer transition-all flex items-center justify-center text-2xl font-bold rounded-lg';
             letterTile.style.width = '45px';
             letterTile.style.height = '45px';
+            letterTile.style.backgroundImage = "url('../assets/textures/Tile Background.png')";
+            letterTile.style.backgroundSize = '100% 100%';
+            letterTile.style.backgroundColor = 'transparent';
+            letterTile.style.border = '2px solid #ca8a04';
+            letterTile.style.color = '#451a03';
+            letterTile.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
             letterTile.textContent = letter;
+            
+            letterTile.addEventListener('mouseenter', () => {
+                letterTile.style.transform = 'scale(1.1)';
+                letterTile.style.boxShadow = '0 4px 8px rgba(0,0,0,0.4)';
+            });
+            
+            letterTile.addEventListener('mouseleave', () => {
+                letterTile.style.transform = 'scale(1)';
+                letterTile.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+            });
             
             letterTile.addEventListener('click', () => {
                 callback(letter);
@@ -432,7 +449,17 @@ export class UIManager {
             letters.forEach(letter => {
                 const count = breakdown[letter] || 0;
                 const letterElement = document.createElement('div');
-                letterElement.className = `flex justify-between items-center p-2 rounded ${count > 0 ? 'bg-blue-800 text-blue-100' : 'bg-gray-700 text-gray-400'}`;
+                letterElement.className = 'flex justify-between items-center p-2 rounded-lg';
+                
+                if (count > 0) {
+                    letterElement.style.background = 'linear-gradient(to right, rgba(202, 138, 4, 0.3), rgba(139, 105, 20, 0.2))';
+                    letterElement.style.border = '1px solid #8b6914';
+                    letterElement.style.color = '#fde68a';
+                } else {
+                    letterElement.style.background = 'rgba(0, 0, 0, 0.2)';
+                    letterElement.style.border = '1px solid rgba(139, 105, 20, 0.15)';
+                    letterElement.style.color = '#78716c';
+                }
                 
                 const displayLetter = letter === 'BLANK' ? '★' : letter;
                 letterElement.innerHTML = `
@@ -514,17 +541,18 @@ export class UIManager {
     // Exchange interface
     showExchangeInterface(availableTiles) {
         const overlay = document.createElement('div');
-        overlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+        overlay.className = 'fixed inset-0 flex items-center justify-center z-50';
+        overlay.style.background = 'rgba(0, 0, 0, 0.75)';
         overlay.innerHTML = `
-            <div class="bg-white p-6 rounded-lg shadow-lg max-w-md w-full mx-4">
-                <h2 class="text-2xl font-bold text-gray-900 mb-4">Exchange Tiles</h2>
-                <p class="text-gray-700 mb-4">Select tiles to exchange:</p>
-                <div id="exchange-tiles" class="flex flex-wrap gap-2 mb-4 justify-center">
+            <div class="p-8 rounded-xl shadow-2xl max-w-md w-full mx-4" style="background: linear-gradient(145deg, #3d2817 0%, #2a1a0f 100%); border: 3px solid #8b6914;">
+                <h2 class="text-2xl font-bold mb-4" style="color: #fbbf24; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">Exchange Tiles</h2>
+                <p class="mb-4 font-medium" style="color: #fde68a;">Select tiles to exchange:</p>
+                <div id="exchange-tiles" class="flex flex-wrap gap-2 mb-6 justify-center">
                     <!-- Tiles will be added here -->
                 </div>
-                <div class="flex gap-2 justify-end">
-                    <button id="cancel-exchange" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">Cancel</button>
-                    <button id="confirm-exchange" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Exchange</button>
+                <div class="flex gap-3 justify-end">
+                    <button id="cancel-exchange" class="px-5 py-3 font-bold rounded-lg transition duration-200" style="background: linear-gradient(to bottom, #6b7280 0%, #4b5563 100%); color: white; border: 2px solid #374151; box-shadow: 0 4px 6px rgba(0,0,0,0.3); text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Cancel</button>
+                    <button id="confirm-exchange" class="px-5 py-3 font-bold rounded-lg transition duration-200" style="background: linear-gradient(to bottom, #059669 0%, #047857 100%); color: white; border: 2px solid #065f46; box-shadow: 0 4px 6px rgba(0,0,0,0.3); text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Exchange</button>
                 </div>
             </div>
         `;
