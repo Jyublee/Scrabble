@@ -258,9 +258,10 @@ export class GameController {
         if (success) {
             this.uiManager.log(`${playerName} played: ${words.map(w => w.word).join(', ')} for ${totalScore} points`);
             
-            // If this was my word, make placed tiles permanent
+            // If this was my word, make placed tiles permanent and clear highlights
             const localPlayer = this.getLocalPlayer();
             if (localPlayer && localPlayer.name === playerName) {
+                this.clearWordHighlights(); // Clear validation highlights
                 this.boardManager.makeCurrentTurnTilesPermanent();
                 this.boardManager.clearPlacedTiles(); // Clear the placed tiles array since they're now permanent
             }
@@ -320,6 +321,9 @@ export class GameController {
         
         this.updateCurrentPlayerDisplay();
         this.uiManager.updateButtonStates(this.networkManager.getGameRoomState());
+        
+        // Clear word highlights when turn changes
+        this.clearWordHighlights();
         
         // Update letter bag display if breakdown is provided
         if (data.tileBagBreakdown) {
@@ -543,6 +547,9 @@ export class GameController {
         localPlayer.updateRackDisplay();
         
         console.log(`✅ Tile ${letter} recalled from [${row}, ${col}] back to rack`);
+        
+        // Re-validate remaining words
+        this.validatePlacedWordsRealtime();
     }
 
     handleTilesRecalled(tiles) {
@@ -561,6 +568,9 @@ export class GameController {
         });
         
         localPlayer.updateRackDisplay();
+        
+        // Clear all word highlights since all tiles were recalled
+        this.clearWordHighlights();
     }
 
     handleTilePlaced(data) {
@@ -569,6 +579,85 @@ export class GameController {
         if (localPlayer) {
             localPlayer.removeTileFromRack(data.tile.letter);
         }
+        
+        // Trigger real-time word validation
+        this.validatePlacedWordsRealtime();
+    }
+
+    async validatePlacedWordsRealtime() {
+        // Clear any existing highlights
+        this.clearWordHighlights();
+        
+        const placedTiles = this.boardManager.getPlacedTiles();
+        if (placedTiles.length === 0) return;
+        
+        // Find all words formed
+        const words = this.gameLogic.findWordsFormedByPlacement();
+        
+        if (words.length === 0) return;
+        
+        // Validate each word and apply visual feedback
+        for (const wordData of words) {
+            const isValid = await this.gameLogic.validateWord(wordData.word);
+            const score = this.gameLogic.calculateScore(wordData);
+            
+            // Highlight the word with appropriate color and score
+            this.highlightWord(wordData, isValid, score);
+        }
+    }
+
+    highlightWord(wordData, isValid, score) {
+        const { startRow, startCol, endRow, endCol, direction } = wordData;
+        const color = isValid ? 'valid' : 'invalid';
+        
+        if (direction === 'horizontal') {
+            for (let c = startCol; c <= endCol; c++) {
+                const square = document.querySelector(`[data-r="${startRow}"][data-c="${c}"]`);
+                if (square) {
+                    square.classList.add(`word-${color}`);
+                    square.dataset.wordDirection = 'horizontal';
+                }
+            }
+            
+            // Add score indicator at the end of the word
+            const endSquare = document.querySelector(`[data-r="${startRow}"][data-c="${endCol}"]`);
+            if (endSquare && !endSquare.querySelector('.word-score-indicator')) {
+                const scoreIndicator = document.createElement('div');
+                scoreIndicator.className = `word-score-indicator ${color}`;
+                scoreIndicator.textContent = `${score}`;
+                endSquare.appendChild(scoreIndicator);
+            }
+        } else {
+            for (let r = startRow; r <= endRow; r++) {
+                const square = document.querySelector(`[data-r="${r}"][data-c="${startCol}"]`);
+                if (square) {
+                    square.classList.add(`word-${color}`);
+                    square.dataset.wordDirection = 'vertical';
+                }
+            }
+            
+            // Add score indicator at the end of the word
+            const endSquare = document.querySelector(`[data-r="${endRow}"][data-c="${startCol}"]`);
+            if (endSquare && !endSquare.querySelector('.word-score-indicator')) {
+                const scoreIndicator = document.createElement('div');
+                scoreIndicator.className = `word-score-indicator ${color}`;
+                scoreIndicator.textContent = `${score}`;
+                endSquare.appendChild(scoreIndicator);
+            }
+        }
+    }
+
+    clearWordHighlights() {
+        // Remove all word validation classes and score indicators
+        const highlightedSquares = document.querySelectorAll('.word-valid, .word-invalid');
+        highlightedSquares.forEach(square => {
+            square.classList.remove('word-valid', 'word-invalid');
+            delete square.dataset.wordDirection;
+        });
+        
+        // Remove all score indicators
+        const scoreIndicators = document.querySelectorAll('.word-score-indicator');
+        scoreIndicators.forEach(indicator => indicator.remove());
     }
 
     handleTimerExpired(data) {

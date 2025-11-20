@@ -212,6 +212,67 @@ button:disabled:hover {
     border-color: #10b981;
 }
 
+/* --- WORD VALIDATION HIGHLIGHTING --- */
+.board-square.word-valid {
+    box-shadow: inset 0 0 0 3px #10b981;
+    animation: pulse-valid 2s infinite;
+}
+
+.board-square.word-invalid {
+    box-shadow: inset 0 0 0 3px #ef4444;
+    animation: pulse-invalid 2s infinite;
+}
+
+@keyframes pulse-valid {
+    0%, 100% {
+        box-shadow: inset 0 0 0 3px #10b981;
+    }
+    50% {
+        box-shadow: inset 0 0 0 3px #34d399;
+    }
+}
+
+@keyframes pulse-invalid {
+    0%, 100% {
+        box-shadow: inset 0 0 0 3px #ef4444;
+    }
+    50% {
+        box-shadow: inset 0 0 0 3px #f87171;
+    }
+}
+
+/* Word Score Indicator */
+.word-score-indicator {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background-color: #10b981;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+    pointer-events: none;
+    animation: score-appear 0.3s ease-out;
+}
+
+.word-score-indicator.invalid {
+    background-color: #ef4444;
+}
+
+@keyframes score-appear {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
 /* --- RESPONSIVE IMPROVEMENTS --- */
 @media (max-width: 768px) {
     .exchange-overlay .bg-white {
@@ -223,3 +284,4 @@ button:disabled:hover {
         justify-content: center;
     }
 }
+
