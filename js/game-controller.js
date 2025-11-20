@@ -395,7 +395,9 @@ export class GameController {
                 col: tile.col,
                 letter: tile.letter,
                 points: tile.points,
-                isBlank: tile.isBlank
+                isBlank: tile.isBlank,
+                designatedLetter: tile.designatedLetter,
+                displayLetter: tile.displayLetter
             })),
             rackUpdates: placedTiles.map(tile => ({
                 letter: tile.isBlank ? 'BLANK' : tile.letter

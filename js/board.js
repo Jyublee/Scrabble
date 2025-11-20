@@ -163,19 +163,26 @@ export class BoardManager {
     createBoardTileElement(letter, points, isCurrentTurn = true, isBlank = false, designatedLetter = null) {
         const tile = document.createElement('div');
         tile.className = 'tile';
-        tile.textContent = letter === 'BLANK' ? '' : letter;
-        tile.dataset.letter = isBlank ? 'BLANK' : letter;
-        tile.dataset.points = points;
         
-        // Handle blank tile designation
-        if (isBlank) {
+        // For blank tiles, always show the designated letter
+        if (isBlank && designatedLetter) {
+            tile.textContent = designatedLetter;
+            tile.dataset.letter = 'BLANK';
             tile.dataset.isBlank = 'true';
-            if (designatedLetter) {
-                tile.dataset.designatedLetter = designatedLetter;
-                tile.textContent = designatedLetter;
-                tile.classList.add('blank-tile-designated');
-            }
+            tile.dataset.designatedLetter = designatedLetter;
+            tile.classList.add('blank-tile-designated');
+        } else if (letter === 'BLANK') {
+            // Blank tile without designation (shouldn't happen on board, but handle it)
+            tile.textContent = '';
+            tile.dataset.letter = 'BLANK';
+            tile.dataset.isBlank = 'true';
+        } else {
+            // Regular tile
+            tile.textContent = letter;
+            tile.dataset.letter = letter;
         }
+        
+        tile.dataset.points = points;
         
         // Make tiles placed in current turn draggable for repositioning
         if (isCurrentTurn) {
@@ -217,13 +224,11 @@ export class BoardManager {
             });
         }
         
-        // Add points display (blank tiles always show 0)
-        if (letter !== 'BLANK') {
-            const pointsSpan = document.createElement('span');
-            pointsSpan.className = 'points';
-            pointsSpan.textContent = isBlank ? '0' : points;
-            tile.appendChild(pointsSpan);
-        }
+        // Add points display (blank tiles always show 0, regular tiles show their points)
+        const pointsSpan = document.createElement('span');
+        pointsSpan.className = 'points';
+        pointsSpan.textContent = isBlank ? '0' : points;
+        tile.appendChild(pointsSpan);
         
         return tile;
     }
@@ -256,11 +261,18 @@ export class BoardManager {
                     // Clear square
                     square.innerHTML = '';
                     
+                    // For blank tiles, use displayLetter if available
+                    const displayLetter = tileData.displayLetter || tileData.letter;
+                    const isBlank = tileData.isBlank || false;
+                    const designatedLetter = tileData.designatedLetter || null;
+                    
                     // Add tile (permanent - from server)
                     const tileElement = this.createBoardTileElement(
-                        tileData.letter,
+                        displayLetter,
                         tileData.points,
-                        false  // Not current turn - make permanent
+                        false,  // Not current turn - make permanent
+                        isBlank,
+                        designatedLetter
                     );
                     tileElement.classList.add('permanent-tile');
                     square.appendChild(tileElement);

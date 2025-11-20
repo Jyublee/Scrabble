@@ -150,6 +150,25 @@ body {
 }
 
 /* --- BLANK TILE STYLES --- */
+.blank-unassigned {
+    background: linear-gradient(135deg, #e5e7eb, #d1d5db) !important;
+    border: 2px dashed #9ca3af !important;
+    cursor: pointer !important;
+    animation: pulse-gentle 2s infinite;
+}
+
+.blank-unassigned::before {
+    content: '?';
+    font-size: 1.5rem;
+    color: #6b7280;
+    font-weight: bold;
+}
+
+@keyframes pulse-gentle {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
 .blank-tile-designated {
     background: linear-gradient(135deg, #fbbf24, #f59e0b) !important;
     border: 2px solid #d97706 !important;

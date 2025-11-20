@@ -308,7 +308,9 @@ io.on('connection', (socket) => {
                     gameState.board[update.row][update.col] = {
                         letter: update.letter,
                         points: update.points,
-                        isBlank: update.isBlank
+                        isBlank: update.isBlank || false,
+                        designatedLetter: update.designatedLetter || null,
+                        displayLetter: update.displayLetter || update.letter
                     };
                 });
                 

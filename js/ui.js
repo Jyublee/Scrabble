@@ -46,6 +46,11 @@ export class UIManager {
             this.handleTimerExpired(event.detail);
         });
 
+        // Blank tile picker event
+        document.addEventListener('showBlankTilePicker', (event) => {
+            this.handleBlankTile(event.detail.tileElement);
+        });
+
         // Enter key in player name input
         document.getElementById('player-name').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
@@ -126,8 +131,18 @@ export class UIManager {
     createTileElement(letter, points) {
         const tile = document.createElement('div');
         tile.className = 'tile';
-        tile.draggable = true;
-        tile.textContent = letter === 'BLANK' ? '' : letter;
+        
+        // Blank tiles should not be draggable until assigned
+        if (letter === 'BLANK') {
+            tile.draggable = false;
+            tile.style.cursor = 'pointer';
+            tile.classList.add('blank-unassigned');
+            tile.textContent = '';
+        } else {
+            tile.draggable = true;
+            tile.textContent = letter;
+        }
+        
         tile.dataset.letter = letter;
         tile.dataset.points = points;
         
@@ -161,6 +176,13 @@ export class UIManager {
         const isBlank = e.target.dataset.letter === 'BLANK' || e.target.dataset.isBlank === 'true';
         const designatedLetter = e.target.dataset.designatedLetter;
         
+        // Prevent dragging unassigned blank tiles
+        if (e.target.dataset.letter === 'BLANK' && !designatedLetter) {
+            e.preventDefault();
+            alert('Please click the blank tile to choose a letter first!');
+            return false;
+        }
+        
         const tileData = {
             letter: e.target.dataset.letter,
             points: parseInt(e.target.dataset.points),
@@ -182,24 +204,83 @@ export class UIManager {
     }
 
     handleBlankTile(tileElement) {
-        const letter = prompt('What letter should this blank tile represent? (A-Z)');
-        if (letter && /^[A-Z]$/i.test(letter)) {
-            const upperLetter = letter.toUpperCase();
-            tileElement.textContent = upperLetter;
-            // Keep original letter as BLANK but store designated letter
-            tileElement.dataset.designatedLetter = upperLetter;
-            tileElement.dataset.isBlank = 'true';
-            tileElement.classList.add('blank-tile-designated');
-            
-            // Ensure blank tiles always show 0 points
-            let pointsSpan = tileElement.querySelector('.points');
-            if (!pointsSpan) {
-                pointsSpan = document.createElement('span');
-                pointsSpan.className = 'points';
-                tileElement.appendChild(pointsSpan);
+        // Show letter picker modal
+        this.showLetterPickerModal((selectedLetter) => {
+            if (selectedLetter) {
+                tileElement.textContent = selectedLetter;
+                tileElement.dataset.designatedLetter = selectedLetter;
+                tileElement.dataset.isBlank = 'true';
+                tileElement.classList.add('blank-tile-designated');
+                
+                // Make the tile draggable now that it has a letter
+                tileElement.draggable = true;
+                tileElement.style.cursor = 'grab';
+                tileElement.classList.remove('blank-unassigned');
+                
+                // Ensure blank tiles always show 0 points
+                let pointsSpan = tileElement.querySelector('.points');
+                if (!pointsSpan) {
+                    pointsSpan = document.createElement('span');
+                    pointsSpan.className = 'points';
+                    tileElement.appendChild(pointsSpan);
+                }
+                pointsSpan.textContent = '0';
+                
+                console.log(`✅ Blank tile assigned letter: ${selectedLetter}`);
             }
-            pointsSpan.textContent = '0';
+        });
+    }
+
+    showLetterPickerModal(callback) {
+        const overlay = document.createElement('div');
+        overlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+        overlay.innerHTML = `
+            <div class="bg-white p-6 rounded-lg shadow-lg max-w-md w-full mx-4">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">Choose a Letter</h2>
+                <p class="text-gray-700 mb-4">Select which letter this blank tile should represent:</p>
+                <div id="letter-picker-grid" class="grid grid-cols-7 gap-2 mb-4">
+                    <!-- Letters will be added here -->
+                </div>
+                <div class="flex gap-2 justify-end">
+                    <button id="cancel-letter-picker" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">Cancel</button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(overlay);
+        
+        // Add letter tiles A-Z
+        const letterGrid = overlay.querySelector('#letter-picker-grid');
+        const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        
+        for (let letter of alphabet) {
+            const letterTile = document.createElement('div');
+            letterTile.className = 'tile cursor-pointer hover:bg-blue-200 transition-colors flex items-center justify-center text-2xl font-bold bg-yellow-100 border-2 border-yellow-600 rounded shadow-sm';
+            letterTile.style.width = '45px';
+            letterTile.style.height = '45px';
+            letterTile.textContent = letter;
+            
+            letterTile.addEventListener('click', () => {
+                callback(letter);
+                document.body.removeChild(overlay);
+            });
+            
+            letterGrid.appendChild(letterTile);
         }
+        
+        // Cancel button
+        overlay.querySelector('#cancel-letter-picker').addEventListener('click', () => {
+            callback(null);
+            document.body.removeChild(overlay);
+        });
+        
+        // Close on overlay click
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                callback(null);
+                document.body.removeChild(overlay);
+            }
+        });
     }
 
     // Game state updates

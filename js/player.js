@@ -113,8 +113,14 @@ export class NetworkPlayer {
             tile.dataset.isBlank = 'true';
             tile.dataset.designatedLetter = designatedLetter;
             tile.classList.add('blank-tile-designated');
+        } else if (letter === 'BLANK') {
+            // Unassigned blank tile - make it non-draggable initially
+            tile.textContent = '';
+            tile.draggable = false;
+            tile.style.cursor = 'pointer';
+            tile.classList.add('blank-unassigned');
         } else {
-            tile.textContent = letter === 'BLANK' ? '' : letter;
+            tile.textContent = letter;
         }
         
         tile.dataset.letter = letter;
@@ -126,6 +132,14 @@ export class NetworkPlayer {
             if (e.target.classList.contains('disabled-tile')) {
                 e.preventDefault();
                 console.log('🚫 Cannot move tiles - Not your turn!');
+                return false;
+            }
+            
+            // Check if this is an unassigned blank tile
+            if (letter === 'BLANK' && !e.target.dataset.designatedLetter) {
+                e.preventDefault();
+                console.log('🚫 Blank tile must be assigned a letter before moving!');
+                alert('Please click the blank tile to choose a letter first!');
                 return false;
             }
             
@@ -148,27 +162,14 @@ export class NetworkPlayer {
             e.target.classList.remove('dragging');
         });
         
-        // Handle blank tiles
+        // Handle blank tiles - dispatch event for UI manager to show letter picker
         if (letter === 'BLANK') {
             tile.addEventListener('click', () => {
-                const newLetter = prompt('What letter should this blank tile represent? (A-Z)');
-                if (newLetter && /^[A-Z]$/i.test(newLetter)) {
-                    const upperLetter = newLetter.toUpperCase();
-                    tile.textContent = upperLetter;
-                    // Keep original letter as BLANK but store designated letter
-                    tile.dataset.designatedLetter = upperLetter;
-                    tile.dataset.isBlank = 'true';
-                    tile.classList.add('blank-tile-designated');
-                    
-                    // Ensure blank tiles always show 0 points
-                    let pointsSpan = tile.querySelector('.points');
-                    if (!pointsSpan) {
-                        pointsSpan = document.createElement('span');
-                        pointsSpan.className = 'points';
-                        tile.appendChild(pointsSpan);
-                    }
-                    pointsSpan.textContent = '0';
-                }
+                // Dispatch event to show letter picker
+                const event = new CustomEvent('showBlankTilePicker', { 
+                    detail: { tileElement: tile } 
+                });
+                document.dispatchEvent(event);
             });
             
             // Add points display for blank tiles showing 0
