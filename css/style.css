@@ -39,11 +39,19 @@ body {
 .sq-dw { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: #fff7ed; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
 .sq-tl { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: #eff6ff; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
 .sq-dl { background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); color: #f0f9ff; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
-.sq-st { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: #fff7ed; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
+.sq-st { 
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); 
+    color: #fff7ed; 
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    position: relative;
+}
 .sq-st::before {
     content: '★';
     font-size: 1.5rem;
     position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     color: #fbbf24;
     filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.5));
 }
@@ -142,17 +150,6 @@ body {
 .tile.debug-dragging {
     opacity: 0.8;
     transform: rotate(5deg);
-}
-
-/* Center star highlight */
-.sq-st {
-    background-color: #f87171 !important;
-    animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.7; }
 }
 
 /* --- BLANK TILE STYLES --- */

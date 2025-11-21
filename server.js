@@ -421,14 +421,12 @@ io.on('connection', (socket) => {
             if (player && data.exchangedTiles && data.exchangedTiles.length > 0) {
                 
                 // Check if this is a free swap and if one has already been used this turn
-                const isFreeSwap = data.isFreeSwap || false;
+                let isFreeSwap = data.isFreeSwap || false;
                 
+                // If free swap already used this turn, treat as regular swap
                 if (isFreeSwap && gameState.freeSwapUsedThisTurn) {
-                    console.log(`❌ ${player.name} tried to use free swap but already used one this turn`);
-                    socket.emit('swap-error', {
-                        message: 'You can only use one free swap per turn!'
-                    });
-                    return;
+                    console.log(`⚠️ ${player.name} tried to use free swap but already used one this turn - treating as regular swap`);
+                    isFreeSwap = false; // Convert to regular swap
                 }
                 
                 // Remove exchanged tiles from player's rack first

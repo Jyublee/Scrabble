@@ -484,8 +484,13 @@ export class GameController {
         const localPlayer = this.getLocalPlayer();
         if (!localPlayer) return;
         
-        // Check if player qualifies for free swap (3+ same letters)
-        const isFreeSwap = localPlayer.hasThreeOrMoreSameLetter();
+        // Get current game state to check if free swap already used
+        const gameState = this.networkManager.getGameRoomState();
+        const freeSwapAlreadyUsed = gameState.freeSwapUsedThisTurn || false;
+        
+        // Check if player qualifies for free swap (3+ same letters AND hasn't used free swap yet)
+        const hasFreeSwapEligibility = localPlayer.hasThreeOrMoreSameLetter();
+        const isFreeSwap = hasFreeSwapEligibility && !freeSwapAlreadyUsed;
         
         // Get the tiles to exchange without removing them locally yet
         const exchangedTiles = [];
