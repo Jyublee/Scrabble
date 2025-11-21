@@ -706,13 +706,39 @@ export class UIManager {
         const tileElement = this.createTileElement(tile.letter || tile, TILE_BAG[tile.letter || tile]?.points || 0);
         tileElement.className += ' exchange-tile cursor-pointer';
         tileElement.dataset.index = index;
+        tileElement.style.transition = 'all 0.2s ease';
+        
+        // Add hover effect for better UX
+        tileElement.addEventListener('mouseenter', () => {
+            if (!tileElement.classList.contains('selected')) {
+                tileElement.style.transform = 'scale(1.05)';
+                tileElement.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
+            }
+        });
+        
+        tileElement.addEventListener('mouseleave', () => {
+            if (!tileElement.classList.contains('selected')) {
+                tileElement.style.transform = '';
+                tileElement.style.boxShadow = '';
+            }
+        });
         
         tileElement.addEventListener('click', () => {
             tileElement.classList.toggle('selected');
             if (tileElement.classList.contains('selected')) {
-                tileElement.style.backgroundColor = '#93c5fd';
+                // Strong visual indication: bright border, scale up, and color change
+                tileElement.style.border = '4px solid #fbbf24';
+                tileElement.style.boxShadow = '0 0 20px rgba(251, 191, 36, 0.8), 0 0 40px rgba(251, 191, 36, 0.4)';
+                tileElement.style.transform = 'scale(1.1) translateY(-5px)';
+                tileElement.style.backgroundColor = '#065f46';
+                tileElement.style.zIndex = '10';
             } else {
+                // Reset to default
+                tileElement.style.border = '';
+                tileElement.style.boxShadow = '';
+                tileElement.style.transform = '';
                 tileElement.style.backgroundColor = '';
+                tileElement.style.zIndex = '';
             }
         });
         
