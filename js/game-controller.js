@@ -24,6 +24,10 @@ export class GameController {
         
         // Tile bag for local operations
         this.fullTileBag = [];
+        
+        // Turn snapshot for recall functionality
+        this.turnStartRack = null;
+        this.turnStartBoardState = null;
     }
 
     async initialize() {
@@ -194,6 +198,16 @@ export class GameController {
         this.currentPlayerIndex = gameState.currentPlayer;
         this.players[this.currentPlayerIndex].setActive(true);
         
+        // Snapshot initial state if it's local player's turn
+        if (this.currentPlayerIndex === this.myPlayerIndex && localPlayer) {
+            this.turnStartRack = JSON.parse(JSON.stringify(localPlayer.rack));
+            this.turnStartBoardState = [];
+            console.log('📸 Snapshotted initial turn state:', {
+                rack: this.turnStartRack,
+                placedTiles: this.turnStartBoardState
+            });
+        }
+        
         this.gameStarted = true;
         this.uiManager.log(`Network game started! ${this.players.length} players connected.`);
         this.updateGameStateDisplay();
@@ -317,6 +331,17 @@ export class GameController {
         if (this.players[this.currentPlayerIndex]) {
             this.players[this.currentPlayerIndex].setActive(true);
             console.log(`Player ${this.currentPlayerIndex} (${this.players[this.currentPlayerIndex].name}) activated`);
+        }
+        
+        // Snapshot rack and board state at the start of local player's turn
+        const localPlayer = this.getLocalPlayer();
+        if (localPlayer && this.currentPlayerIndex === this.myPlayerIndex) {
+            this.turnStartRack = JSON.parse(JSON.stringify(localPlayer.rack));
+            this.turnStartBoardState = this.boardManager.getPlacedTiles().map(tile => ({...tile}));
+            console.log('📸 Snapshotted turn start state:', {
+                rack: this.turnStartRack,
+                placedTiles: this.turnStartBoardState
+            });
         }
         
         this.updateCurrentPlayerDisplay();
@@ -549,8 +574,9 @@ export class GameController {
         // Remove from placed tiles array (use the boardManager method to modify the actual array)
         this.boardManager.removePlacedTile(row, col);
         
-        // Create proper tile object for the rack
+        // Create proper tile object for the rack (preserve the ID)
         const tileForRack = {
+            id: tileData.id,
             letter: letter,
             points: points,
             isBlank: isBlank || false,
@@ -572,18 +598,26 @@ export class GameController {
         const localPlayer = this.getLocalPlayer();
         if (!localPlayer) return;
         
-        // Add tiles back to rack
-        tiles.forEach(tile => {
-            const tileForRack = {
-                letter: tile.letter,
-                points: tile.points,
-                isBlank: tile.isBlank || false,
-                designatedLetter: tile.designatedLetter
-            };
-            localPlayer.rack.push(tileForRack);
-        });
-        
-        localPlayer.updateRackDisplay();
+        // Restore rack to the state it was at the start of the turn
+        if (this.turnStartRack) {
+            console.log('🔄 Restoring rack from snapshot:', this.turnStartRack);
+            localPlayer.rack = JSON.parse(JSON.stringify(this.turnStartRack));
+            localPlayer.updateRackDisplay();
+        } else {
+            console.warn('⚠️ No turn start snapshot available, falling back to old behavior');
+            // Fallback: Add tiles back to rack (preserve IDs)
+            tiles.forEach(tile => {
+                const tileForRack = {
+                    id: tile.id,
+                    letter: tile.letter,
+                    points: tile.points,
+                    isBlank: tile.isBlank || false,
+                    designatedLetter: tile.designatedLetter
+                };
+                localPlayer.rack.push(tileForRack);
+            });
+            localPlayer.updateRackDisplay();
+        }
         
         // Clear all word highlights since all tiles were recalled
         this.clearWordHighlights();

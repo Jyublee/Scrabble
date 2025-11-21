@@ -81,6 +81,23 @@ export class NetworkPlayer {
         // If passed a full tile object with properties, try to match precisely
         if (typeof letterOrTile === 'object' && letterOrTile !== null) {
             const tileToRemove = letterOrTile;
+            
+            // First, try to match by unique tile ID (most precise)
+            if (tileToRemove.id) {
+                const idIndex = this.rack.findIndex(tile => 
+                    typeof tile === 'object' && tile.id === tileToRemove.id
+                );
+                
+                if (idIndex !== -1) {
+                    const removed = this.rack.splice(idIndex, 1)[0];
+                    console.log('✅ Removed tile by ID at index', idIndex, ':', removed);
+                    console.log('📦 Rack after removal:', JSON.stringify(this.rack));
+                    this.updateRackDisplay();
+                    return true;
+                }
+            }
+            
+            // Fallback to property matching for tiles without IDs
             const index = this.rack.findIndex(tile => {
                 const tileLetter = typeof tile === 'string' ? tile : tile.letter;
                 const tileIsBlank = typeof tile === 'object' ? (tile.isBlank || false) : false;
@@ -171,17 +188,23 @@ export class NetworkPlayer {
             const points = typeof tile === 'string' ? (TILE_BAG[tile]?.points || 0) : tile.points;
             const isBlank = typeof tile === 'object' ? tile.isBlank : false;
             const designatedLetter = typeof tile === 'object' ? tile.designatedLetter : null;
+            const tileId = typeof tile === 'object' ? tile.id : null;
             
-            const tileElement = this.createTileElement(letter, points, isBlank, designatedLetter);
+            const tileElement = this.createTileElement(letter, points, isBlank, designatedLetter, tileId);
             tileElement.dataset.rackIndex = index;
             rackElement.appendChild(tileElement);
         });
     }
 
-    createTileElement(letter, points, isBlank = false, designatedLetter = null) {
+    createTileElement(letter, points, isBlank = false, designatedLetter = null, tileId = null) {
         const tile = document.createElement('div');
         tile.className = 'tile';
         tile.draggable = true;
+        
+        // Store tile ID if provided
+        if (tileId) {
+            tile.dataset.id = tileId;
+        }
         
         // Handle blank tiles with designated letters
         if (isBlank && designatedLetter) {
@@ -221,8 +244,10 @@ export class NetworkPlayer {
             
             const tileIsBlank = letter === 'BLANK' || e.target.dataset.isBlank === 'true';
             const tileDesignatedLetter = e.target.dataset.designatedLetter;
+            const tileTileId = e.target.dataset.id;
             
             const tileData = {
+                id: tileTileId,
                 letter: letter,
                 points: points,
                 isBlank: tileIsBlank,

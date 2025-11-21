@@ -129,11 +129,12 @@ export class BoardManager {
         const actualLetter = tile.isBlank ? 'BLANK' : tile.letter;
         
         // Create tile element for the board (draggable for current turn)
-        const tileElement = this.createBoardTileElement(displayLetter, tile.points, true, tile.isBlank, tile.designatedLetter);
+        const tileElement = this.createBoardTileElement(displayLetter, tile.points, true, tile.isBlank, tile.designatedLetter, tile.id);
         targetSquare.appendChild(tileElement);
         
         // Update game board state
         this.gameBoard[row][col] = {
+            id: tile.id, // Preserve unique tile ID
             letter: actualLetter,
             displayLetter: displayLetter,
             points: tile.points,
@@ -143,6 +144,7 @@ export class BoardManager {
         
         // Track placed tile
         this.placedTiles.push({
+            id: tile.id, // Preserve unique tile ID
             row,
             col,
             letter: actualLetter,
@@ -160,9 +162,14 @@ export class BoardManager {
         return true;
     }
 
-    createBoardTileElement(letter, points, isCurrentTurn = true, isBlank = false, designatedLetter = null) {
+    createBoardTileElement(letter, points, isCurrentTurn = true, isBlank = false, designatedLetter = null, tileId = null) {
         const tile = document.createElement('div');
         tile.className = 'tile';
+        
+        // Store tile ID if provided
+        if (tileId) {
+            tile.dataset.id = tileId;
+        }
         
         // For blank tiles, always show the designated letter
         if (isBlank && designatedLetter) {
@@ -204,6 +211,7 @@ export class BoardManager {
                 const col = boardSquare?.dataset.c;
                 
                 const tileData = {
+                    id: tile.dataset.id,
                     letter: tile.dataset.letter,
                     points: points,
                     isBlank: isBlank,

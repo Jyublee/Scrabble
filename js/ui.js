@@ -110,6 +110,7 @@ export class UIManager {
         
         // Dispatch event to game controller to handle the recall properly
         this.dispatchEvent('singleTileRecalled', { 
+            id: tileData.id,
             row: parseInt(tileData.row),
             col: parseInt(tileData.col),
             letter: tileData.letter,

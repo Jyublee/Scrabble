@@ -48,9 +48,14 @@ function createTileBag() {
     };
     
     const fullTileBag = [];
+    let tileIdCounter = 0;
     for (const [letter, data] of Object.entries(tileBag)) {
         for (let i = 0; i < data.count; i++) {
-            fullTileBag.push({ letter, points: data.points });
+            fullTileBag.push({ 
+                id: `tile_${tileIdCounter++}`, 
+                letter, 
+                points: data.points 
+            });
         }
     }
     
