@@ -41,16 +41,59 @@ export class NetworkPlayer {
         this.updateRackDisplay();
     }
 
-    removeTileFromRack(letter) {
-        const index = this.rack.findIndex(tile => {
-            // Handle both string format and object format
-            const tileLetter = typeof tile === 'string' ? tile : tile.letter;
-            return tileLetter === letter;
-        });
-        if (index !== -1) {
-            this.rack.splice(index, 1);
-            this.updateRackDisplay();
+    removeTileFromRack(letterOrTile, tileProperties = null) {
+        console.log('🎯 Attempting to remove tile from rack:', letterOrTile);
+        console.log('📦 Current rack before removal:', JSON.stringify(this.rack));
+        
+        // If passed a full tile object with properties, try to match precisely
+        if (typeof letterOrTile === 'object' && letterOrTile !== null) {
+            const tileToRemove = letterOrTile;
+            const index = this.rack.findIndex(tile => {
+                const tileLetter = typeof tile === 'string' ? tile : tile.letter;
+                const tileIsBlank = typeof tile === 'object' ? (tile.isBlank || false) : false;
+                const tileDesignated = typeof tile === 'object' ? tile.designatedLetter : null;
+                
+                // Match letter
+                if (tileLetter !== tileToRemove.letter) return false;
+                
+                // If blank tile, also match designated letter
+                if (tileToRemove.isBlank && tileIsBlank) {
+                    return tileDesignated === tileToRemove.designatedLetter;
+                }
+                
+                // For non-blank tiles, letter match is enough if not blank
+                return !tileToRemove.isBlank && !tileIsBlank;
+            });
+            
+            if (index !== -1) {
+                const removed = this.rack.splice(index, 1)[0];
+                console.log('✅ Removed tile at index', index, ':', removed);
+                console.log('📦 Rack after removal:', JSON.stringify(this.rack));
+                this.updateRackDisplay();
+                return true;
+            } else {
+                console.warn('⚠️ Could not find exact tile match in rack');
+            }
         }
+        
+        // Fallback to simple letter matching (for backward compatibility)
+        const letterToFind = typeof letterOrTile === 'string' ? letterOrTile : letterOrTile.letter;
+        const index = this.rack.findIndex(tile => {
+            const tileLetter = typeof tile === 'string' ? tile : tile.letter;
+            return tileLetter === letterToFind;
+        });
+        
+        if (index !== -1) {
+            const removed = this.rack.splice(index, 1)[0];
+            console.log('✅ Removed tile at index', index, '(fallback):', removed);
+            console.log('📦 Rack after removal:', JSON.stringify(this.rack));
+            this.updateRackDisplay();
+            return true;
+        }
+        
+        console.error('❌ Failed to remove tile from rack - not found');
+        console.log('📦 Final rack state:', JSON.stringify(this.rack));
+        return false;
     }
 
     fillRackFromBag(tileBag) {

@@ -510,6 +510,8 @@ export class GameController {
         const localPlayer = this.getLocalPlayer();
         if (!localPlayer) return;
         
+        console.log('📦 Rack before recall:', JSON.stringify(localPlayer.rack));
+        
         const { row, col, letter, points, isBlank, designatedLetter } = tileData;
         
         // Remove tile from board visual
@@ -538,12 +540,13 @@ export class GameController {
         const tileForRack = {
             letter: letter,
             points: points,
-            isBlank: isBlank,
+            isBlank: isBlank || false,
             designatedLetter: designatedLetter
         };
         
         // Add tile back to rack at the end
         localPlayer.rack.push(tileForRack);
+        console.log('📦 Rack after adding recalled tile:', JSON.stringify(localPlayer.rack));
         localPlayer.updateRackDisplay();
         
         console.log(`✅ Tile ${letter} recalled from [${row}, ${col}] back to rack`);
@@ -577,7 +580,8 @@ export class GameController {
         // Remove tile from local player's rack
         const localPlayer = this.getLocalPlayer();
         if (localPlayer) {
-            localPlayer.removeTileFromRack(data.tile.letter);
+            // Pass the full tile object for precise matching
+            localPlayer.removeTileFromRack(data.tile);
         }
         
         // Trigger real-time word validation
