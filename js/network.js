@@ -161,6 +161,11 @@ export class NetworkManager {
             console.log('🚫 Game full:', message);
             this.updateConnectionStatus(message, 'text-red-600');
         });
+        
+        this.socket.on('swap-error', (data) => {
+            console.log('❌ Swap error:', data);
+            alert(data.message);
+        });
     }
 
     // Event dispatching for other modules

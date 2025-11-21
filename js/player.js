@@ -13,6 +13,39 @@ export class NetworkPlayer {
         this.consecutivePasses = 0;
     }
 
+    // Check if player has 3+ of the same letter (qualifies for free swap)
+    hasThreeOrMoreSameLetter() {
+        const letterCounts = {};
+        
+        this.rack.forEach(tile => {
+            const letter = typeof tile === 'string' ? tile : tile.letter;
+            // Don't count blank tiles for this check
+            if (letter !== 'BLANK') {
+                letterCounts[letter] = (letterCounts[letter] || 0) + 1;
+            }
+        });
+        
+        // Check if any letter appears 3 or more times
+        const maxCount = Math.max(...Object.values(letterCounts), 0);
+        return maxCount >= 3;
+    }
+
+    // Get the letters that appear 3+ times
+    getLettersWithThreeOrMore() {
+        const letterCounts = {};
+        
+        this.rack.forEach(tile => {
+            const letter = typeof tile === 'string' ? tile : tile.letter;
+            if (letter !== 'BLANK') {
+                letterCounts[letter] = (letterCounts[letter] || 0) + 1;
+            }
+        });
+        
+        return Object.entries(letterCounts)
+            .filter(([_, count]) => count >= 3)
+            .map(([letter, count]) => ({ letter, count }));
+    }
+
     addToScore(points) {
         if (typeof points !== 'number' || points < 0) {
             console.error('Invalid points to add:', points);

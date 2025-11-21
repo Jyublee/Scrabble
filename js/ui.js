@@ -487,6 +487,7 @@ export class UIManager {
                 if (btn) btn.disabled = true;
             });
             this.disableTileInteractions();
+            this.hideFreeSwapNotification();
             return;
         }
 
@@ -496,10 +497,42 @@ export class UIManager {
             tilesRemaining = Object.values(gameState.tileBagBreakdown).reduce((sum, count) => sum + count, 0);
         }
         
+        // Check if local player has 3+ same letters (free swap eligible)
+        const localPlayer = gameState.players?.find(p => p.socketId === this.networkManager?.socket?.id);
+        const hasFreeSwap = this.checkHasThreeOrMoreSameLetter(localPlayer);
+        const freeSwapAlreadyUsed = gameState.freeSwapUsedThisTurn || false;
+        const freeSwapAvailable = hasFreeSwap && !freeSwapAlreadyUsed;
+        
         if (submitBtn) submitBtn.disabled = !isMyTurn;
         if (passBtn) passBtn.disabled = !isMyTurn;
         if (recallBtn) recallBtn.disabled = !isMyTurn;
-        if (swapBtn) swapBtn.disabled = !isMyTurn || tilesRemaining < 7;
+        
+        // Enable swap if: player's turn AND (tiles remaining >= 7 OR free swap available and not yet used)
+        if (swapBtn) {
+            swapBtn.disabled = !isMyTurn || (tilesRemaining < 7 && !freeSwapAvailable);
+            
+            // Update swap button text based on free swap eligibility
+            if (freeSwapAvailable && isMyTurn) {
+                swapBtn.textContent = "Free Swap! 🎁";
+                swapBtn.style.background = "linear-gradient(to bottom, #8b5cf6 0%, #7c3aed 100%)";
+                swapBtn.style.borderColor = "#6d28d9";
+            } else if (freeSwapAlreadyUsed && isMyTurn) {
+                swapBtn.textContent = "Swap (Used)";
+                swapBtn.style.background = "linear-gradient(to bottom, #6b7280 0%, #4b5563 100%)";
+                swapBtn.style.borderColor = "#374151";
+            } else {
+                swapBtn.textContent = "Swap";
+                swapBtn.style.background = "linear-gradient(to bottom, #3b82f6 0%, #2563eb 100%)";
+                swapBtn.style.borderColor = "#1d4ed8";
+            }
+        }
+        
+        // Show/hide free swap notification
+        if (freeSwapAvailable && isMyTurn) {
+            this.showFreeSwapNotification(localPlayer);
+        } else {
+            this.hideFreeSwapNotification();
+        }
         
         // Update button text to indicate whose turn it is
         if (!isMyTurn && gameStarted) {
@@ -520,6 +553,91 @@ export class UIManager {
         const currentPlayerId = this.networkManager.getCurrentPlayerId();
         const currentPlayer = gameState.players?.[gameState.currentPlayer];
         return currentPlayer?.id === currentPlayerId;
+    }
+
+    showFreeSwapNotification(player) {
+        // Check if notification already exists
+        let notification = document.getElementById('free-swap-notification');
+        
+        if (!notification) {
+            // Create notification element
+            notification = document.createElement('div');
+            notification.id = 'free-swap-notification';
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                z-index: 1000;
+                padding: 1rem 1.5rem;
+                background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+                border: 3px solid #6d28d9;
+                border-radius: 0.75rem;
+                box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4), 0 0 20px rgba(139, 92, 246, 0.3);
+                color: white;
+                font-weight: bold;
+                font-size: 1rem;
+                text-align: center;
+                animation: slideDown 0.3s ease-out, pulse 2s infinite;
+            `;
+            
+            // Get letters with 3+ count
+            const repeatedLetters = this.getLettersWithThreeOrMore(player);
+            const letterText = repeatedLetters.map(l => `${l.letter} (×${l.count})`).join(', ');
+            
+            notification.innerHTML = `
+                <div style="text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">
+                    🎁 <strong>FREE SWAP AVAILABLE!</strong> 🎁
+                </div>
+                <div style="font-size: 0.85rem; margin-top: 0.25rem; opacity: 0.95;">
+                    You have 3+ of the same letter: ${letterText}
+                </div>
+                <div style="font-size: 0.75rem; margin-top: 0.25rem; opacity: 0.85;">
+                    Swap tiles without skipping your turn!
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+        }
+    }
+
+    hideFreeSwapNotification() {
+        const notification = document.getElementById('free-swap-notification');
+        if (notification) {
+            notification.remove();
+        }
+    }
+
+    // Helper methods for free swap feature
+    checkHasThreeOrMoreSameLetter(player) {
+        if (!player || !player.rack) return false;
+        
+        const letterCounts = {};
+        player.rack.forEach(tile => {
+            const letter = typeof tile === 'string' ? tile : tile.letter;
+            if (letter !== 'BLANK') {
+                letterCounts[letter] = (letterCounts[letter] || 0) + 1;
+            }
+        });
+        
+        const maxCount = Math.max(...Object.values(letterCounts), 0);
+        return maxCount >= 3;
+    }
+
+    getLettersWithThreeOrMore(player) {
+        if (!player || !player.rack) return [];
+        
+        const letterCounts = {};
+        player.rack.forEach(tile => {
+            const letter = typeof tile === 'string' ? tile : tile.letter;
+            if (letter !== 'BLANK') {
+                letterCounts[letter] = (letterCounts[letter] || 0) + 1;
+            }
+        });
+        
+        return Object.entries(letterCounts)
+            .filter(([_, count]) => count >= 3)
+            .map(([letter, count]) => ({ letter, count }));
     }
 
     // Logging

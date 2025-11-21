@@ -29,7 +29,8 @@ let gameState = {
     isFirstWordOfGame: true,
     turnTimer: 0, // Timer duration in seconds (0 = no timer)
     currentTurnStartTime: null,
-    timerInterval: null
+    timerInterval: null,
+    freeSwapUsedThisTurn: false // Track if free swap was used this turn
 };
 
 // Tile bag initialization
@@ -85,7 +86,8 @@ function getCleanGameState() {
         gameEnded: gameState.gameEnded,
         consecutivePasses: gameState.consecutivePasses,
         isFirstWordOfGame: gameState.isFirstWordOfGame,
-        turnTimer: gameState.turnTimer
+        turnTimer: gameState.turnTimer,
+        freeSwapUsedThisTurn: gameState.freeSwapUsedThisTurn
     };
 }
 
@@ -158,7 +160,7 @@ function handleTimerExpired() {
         });
         
         // Force turn change (this will handle tile cleanup on client side)
-        gameState.currentPlayer = (gameState.currentPlayer + 1) % gameState.players.length;
+        advanceTurn();
         gameState.consecutivePasses++;
         
         io.emit('turn-changed', {
@@ -170,6 +172,12 @@ function handleTimerExpired() {
         // Start timer for next player
         startTurnTimer();
     }
+}
+
+// Helper function to advance turn and reset turn-specific flags
+function advanceTurn() {
+    gameState.currentPlayer = (gameState.currentPlayer + 1) % gameState.players.length;
+    gameState.freeSwapUsedThisTurn = false; // Reset free swap flag for new turn
 }
 
 // Socket.io connection handling
@@ -351,7 +359,7 @@ io.on('connection', (socket) => {
                 });
                 
                 // Move to next turn
-                gameState.currentPlayer = (gameState.currentPlayer + 1) % gameState.players.length;
+                advanceTurn();
                 
                 console.log(`Turn changed: Player ${gameState.currentPlayer} (${gameState.players[gameState.currentPlayer].name})`);
                 
@@ -386,7 +394,7 @@ io.on('connection', (socket) => {
                 });
                 
                 // Move to next turn
-                gameState.currentPlayer = (gameState.currentPlayer + 1) % gameState.players.length;
+                advanceTurn();
                 
                 // Stop current timer and start new one
                 stopTurnTimer();
@@ -411,6 +419,17 @@ io.on('connection', (socket) => {
         if (gameState.players[gameState.currentPlayer]?.id === socket.id) {
             const player = gameState.players.find(p => p.id === data.playerId);
             if (player && data.exchangedTiles && data.exchangedTiles.length > 0) {
+                
+                // Check if this is a free swap and if one has already been used this turn
+                const isFreeSwap = data.isFreeSwap || false;
+                
+                if (isFreeSwap && gameState.freeSwapUsedThisTurn) {
+                    console.log(`❌ ${player.name} tried to use free swap but already used one this turn`);
+                    socket.emit('swap-error', {
+                        message: 'You can only use one free swap per turn!'
+                    });
+                    return;
+                }
                 
                 // Remove exchanged tiles from player's rack first
                 if (data.selectedIndices) {
@@ -462,25 +481,39 @@ io.on('connection', (socket) => {
                     newRack: player.rack
                 });
                 
-                console.log(`${player.name} exchanged ${data.exchangedTiles.length} tiles`);
-                
-                // Pass the turn after exchange
-                gameState.consecutivePasses = 0; // Reset consecutive passes since this is an active move
-                gameState.currentPlayer = (gameState.currentPlayer + 1) % gameState.players.length;
-                
-                // Stop current timer and start new one
-                stopTurnTimer();
-                
-                io.emit('turn-changed', {
-                    currentPlayer: gameState.currentPlayer,
-                    playerName: gameState.players[gameState.currentPlayer].name,
-                    gameState: getCleanGameState(),
-                    tileBagBreakdown: getTileBagBreakdown()
-                });
-                
-                // Start timer for next player
-                if (gameState.turnTimer > 0) {
-                    startTurnTimer();
+                if (isFreeSwap) {
+                    console.log(`🎁 ${player.name} used FREE SWAP (exchanged ${data.exchangedTiles.length} tiles without skipping turn)`);
+                    
+                    // Mark that free swap was used this turn
+                    gameState.freeSwapUsedThisTurn = true;
+                    
+                    // Broadcast game state update but don't change turn
+                    io.emit('game-state-updated', {
+                        gameState: getCleanGameState(),
+                        tileBagBreakdown: getTileBagBreakdown(),
+                        message: `${player.name} used a free swap!`
+                    });
+                } else {
+                    console.log(`${player.name} exchanged ${data.exchangedTiles.length} tiles`);
+                    
+                    // Pass the turn after regular exchange
+                    gameState.consecutivePasses = 0; // Reset consecutive passes since this is an active move
+                    advanceTurn();
+                    
+                    // Stop current timer and start new one
+                    stopTurnTimer();
+                    
+                    io.emit('turn-changed', {
+                        currentPlayer: gameState.currentPlayer,
+                        playerName: gameState.players[gameState.currentPlayer].name,
+                        gameState: getCleanGameState(),
+                        tileBagBreakdown: getTileBagBreakdown()
+                    });
+                    
+                    // Start timer for next player
+                    if (gameState.turnTimer > 0) {
+                        startTurnTimer();
+                    }
                 }
             }
         }

@@ -484,6 +484,9 @@ export class GameController {
         const localPlayer = this.getLocalPlayer();
         if (!localPlayer) return;
         
+        // Check if player qualifies for free swap (3+ same letters)
+        const isFreeSwap = localPlayer.hasThreeOrMoreSameLetter();
+        
         // Get the tiles to exchange without removing them locally yet
         const exchangedTiles = [];
         selectedIndices.forEach(index => {
@@ -498,10 +501,15 @@ export class GameController {
             playerId: this.networkManager.getCurrentPlayerId(),
             exchangedTiles: exchangedTiles,
             selectedIndices: selectedIndices, // Send indices so server knows what to remove
-            playerName: localPlayer.name
+            playerName: localPlayer.name,
+            isFreeSwap: isFreeSwap // Indicate if this is a free swap
         });
         
-        this.uiManager.log(`Exchanged ${exchangedTiles.length} tiles`);
+        if (isFreeSwap) {
+            this.uiManager.log(`🎁 Free swap! Exchanged ${exchangedTiles.length} tiles without skipping turn`);
+        } else {
+            this.uiManager.log(`Exchanged ${exchangedTiles.length} tiles`);
+        }
     }
 
     handleSingleTileRecalled(tileData) {
