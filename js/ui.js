@@ -106,8 +106,6 @@ export class UIManager {
     }
 
     recallSingleTileToRack(tileData) {
-        console.log('🔄 Recalling single tile to rack:', tileData);
-        
         // Dispatch event to game controller to handle the recall properly
         this.dispatchEvent('singleTileRecalled', { 
             id: tileData.id,
@@ -830,5 +828,81 @@ export class UIManager {
     showLobby() {
         document.getElementById('lobby-screen').classList.remove('hidden');
         document.getElementById('game-area').classList.add('hidden');
+        document.getElementById('conclusion-screen').classList.add('hidden');
+    }
+    
+    showConclusionScreen(endGameData) {
+        console.log('🏆 Showing conclusion screen:', endGameData);
+        
+        // Hide game area
+        document.getElementById('game-area').classList.add('hidden');
+        document.getElementById('game-title').classList.add('hidden');
+        
+        // Show conclusion screen
+        const conclusionScreen = document.getElementById('conclusion-screen');
+        conclusionScreen.classList.remove('hidden');
+        
+        // Set winner announcement
+        const winnerAnnouncement = document.getElementById('winner-announcement');
+        const winner = endGameData.winner;
+        winnerAnnouncement.innerHTML = `
+            <div class="mb-2">🏆</div>
+            <div>${winner.name} Wins!</div>
+            <div class="text-xl mt-2">${winner.finalScore} points</div>
+        `;
+        
+        // Set game end reason
+        const reasonElement = document.getElementById('game-end-reason');
+        reasonElement.textContent = endGameData.reason;
+        
+        // Build rankings list
+        const rankingsContainer = document.getElementById('final-rankings');
+        rankingsContainer.innerHTML = '';
+        
+        endGameData.finalScores.forEach((player, index) => {
+            const rankingItem = document.createElement('div');
+            let rankClass = 'ranking-item';
+            let rankEmoji = `${player.rank}.`;
+            
+            if (player.rank === 1) {
+                rankClass += ' first-place';
+                rankEmoji = '🥇';
+            } else if (player.rank === 2) {
+                rankClass += ' second-place';
+                rankEmoji = '🥈';
+            } else if (player.rank === 3) {
+                rankClass += ' third-place';
+                rankEmoji = '🥉';
+            }
+            
+            rankingItem.className = rankClass;
+            
+            let scoreBreakdown = `Initial: ${player.score}`;
+            if (player.remainingPoints > 0) {
+                scoreBreakdown += ` - Remaining: ${player.remainingPoints}`;
+            }
+            if (player.bonus) {
+                scoreBreakdown += ` + Bonus: ${player.bonus}`;
+            }
+            
+            rankingItem.innerHTML = `
+                <div class="flex items-center gap-4">
+                    <div class="rank-badge">${rankEmoji}</div>
+                    <div>
+                        <div class="player-name">${player.name}</div>
+                        <div class="score-breakdown">${scoreBreakdown}</div>
+                    </div>
+                </div>
+                <div class="player-score">${player.finalScore}</div>
+            `;
+            
+            rankingsContainer.appendChild(rankingItem);
+        });
+        
+        // Setup play again button
+        const playAgainBtn = document.getElementById('play-again-btn');
+        playAgainBtn.onclick = () => {
+            this.networkManager.playAgain();
+        };
     }
 }

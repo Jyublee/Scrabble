@@ -31,8 +31,6 @@ export class GameController {
     }
 
     async initialize() {
-        console.log("🎮 Loading Multiplayer Scrabble Game...");
-        
         // Show loading status
         const statusElement = document.getElementById('connection-status');
         if (statusElement) {
@@ -67,8 +65,6 @@ export class GameController {
         
         // Setup game event listeners
         this.setupGameEvents();
-        
-        console.log("✅ Game Controller initialized");
     }
 
     setupNetworkEvents() {
@@ -111,6 +107,14 @@ export class GameController {
         document.addEventListener('turnChanged', (event) => {
             const data = event.detail;
             this.updateGameState(data.gameState, data.tileBagBreakdown);
+        });
+        
+        document.addEventListener('gameEnded', (event) => {
+            this.handleGameEnded(event.detail);
+        });
+        
+        document.addEventListener('returnToLobby', (event) => {
+            this.handleReturnToLobby(event.detail);
         });
 
         document.addEventListener('timerUpdate', (event) => {
@@ -156,14 +160,10 @@ export class GameController {
 
     // Game Management
     startNetworkGame(gameState) {
-        console.log("🚀 Starting network game", gameState);
-        console.log("My Player ID:", this.networkManager.getCurrentPlayerId());
-        
         // Initialize players from network state
         this.players = [];
         gameState.players.forEach((playerData, index) => {
             const isLocal = playerData.id === this.networkManager.getCurrentPlayerId();
-            console.log(`Player ${index + 1}: ${playerData.name} (ID: ${playerData.id}, isLocal: ${isLocal})`);
             
             const player = new NetworkPlayer(
                 `player-${index + 1}`,  // Use player index for UI mapping (player-1, player-2, etc.)
@@ -177,7 +177,6 @@ export class GameController {
             
             if (isLocal) {
                 this.myPlayerIndex = index;
-                console.log(`Set myPlayerIndex to: ${index}`);
             }
         });
         
@@ -202,10 +201,6 @@ export class GameController {
         if (this.currentPlayerIndex === this.myPlayerIndex && localPlayer) {
             this.turnStartRack = JSON.parse(JSON.stringify(localPlayer.rack));
             this.turnStartBoardState = [];
-            console.log('📸 Snapshotted initial turn state:', {
-                rack: this.turnStartRack,
-                placedTiles: this.turnStartBoardState
-            });
         }
         
         this.gameStarted = true;
@@ -311,8 +306,6 @@ export class GameController {
     }
 
     handleTurnChanged(data) {
-        console.log(`🔄 Turn changed event received: Player ${data.currentPlayer} (${data.playerName})`);
-        
         // Update game state from server
         if (data.gameState) {
             const gameRoomState = this.networkManager.getGameRoomState();
@@ -322,7 +315,6 @@ export class GameController {
         // Deactivate all players first
         this.players.forEach((player, index) => {
             player.setActive(false);
-            console.log(`Player ${index} (${player.name}) deactivated`);
         });
         
         this.currentPlayerIndex = data.currentPlayer;
@@ -330,7 +322,6 @@ export class GameController {
         // Activate current player
         if (this.players[this.currentPlayerIndex]) {
             this.players[this.currentPlayerIndex].setActive(true);
-            console.log(`Player ${this.currentPlayerIndex} (${this.players[this.currentPlayerIndex].name}) activated`);
         }
         
         // Snapshot rack and board state at the start of local player's turn
@@ -338,10 +329,6 @@ export class GameController {
         if (localPlayer && this.currentPlayerIndex === this.myPlayerIndex) {
             this.turnStartRack = JSON.parse(JSON.stringify(localPlayer.rack));
             this.turnStartBoardState = this.boardManager.getPlacedTiles().map(tile => ({...tile}));
-            console.log('📸 Snapshotted turn start state:', {
-                rack: this.turnStartRack,
-                placedTiles: this.turnStartBoardState
-            });
         }
         
         this.updateCurrentPlayerDisplay();
@@ -394,10 +381,6 @@ export class GameController {
     handleTileExchangeNotification(data) {
         // Log the exchange for all players
         this.uiManager.log(`${data.playerName} exchanged ${data.exchangedCount} tiles`);
-        
-        // If this is the local player, they should have already received a rack update
-        // This is just for notification purposes for other players
-        console.log(`Player ${data.playerName} exchanged ${data.exchangedCount} tiles`);
     }
 
     // Game actions
@@ -735,6 +718,58 @@ export class GameController {
         const currentPlayer = this.getCurrentPlayer();
         if (currentPlayer) {
             this.uiManager.updateCurrentPlayer(currentPlayer.name);
+        }
+    }
+    
+    handleGameEnded(endGameData) {
+        console.log('🏁 Game ended:', endGameData);
+        
+        // Mark game as ended
+        this.gameEnded = true;
+        
+        // Show conclusion screen
+        this.uiManager.showConclusionScreen(endGameData);
+        
+        // Log final standings
+        console.log('🏆 Final Standings:');
+        endGameData.finalScores.forEach((player, index) => {
+            console.log(`${index + 1}. ${player.name}: ${player.finalScore} points`);
+        });
+    }
+    
+    handleReturnToLobby(data) {
+        console.log('🔄 Returning to lobby');
+        
+        // Reset game state
+        this.gameStarted = false;
+        this.gameEnded = false;
+        this.players = [];
+        this.myPlayerIndex = -1;
+        this.currentPlayerIndex = 0;
+        this.turnStartRack = null;
+        this.turnStartBoardState = null;
+        
+        // Clear the board
+        this.boardManager.clearBoard();
+        
+        // Show lobby
+        this.uiManager.showLobby();
+        
+        // Update players list in lobby
+        this.networkManager.updatePlayersList({
+            players: data.players,
+            totalPlayers: data.players.length
+        });
+        
+        // Enable join button for re-joining
+        const joinButton = document.getElementById('join-game-btn');
+        const playerNameInput = document.getElementById('player-name');
+        if (joinButton) {
+            joinButton.disabled = false;
+            joinButton.textContent = 'Join Game';
+        }
+        if (playerNameInput) {
+            playerNameInput.disabled = false;
         }
     }
 }

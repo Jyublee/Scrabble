@@ -32,8 +32,6 @@ export class BoardManager {
                 boardElement.appendChild(square);
             }
         }
-        
-        console.log('✅ Board created successfully');
     }
 
     getSquareText(squareType) {
@@ -64,7 +62,6 @@ export class BoardManager {
         
         // Check if board interactions are disabled
         if (e.target.style.pointerEvents === 'none') {
-            console.warn('Board interactions are disabled');
             return;
         }
         
@@ -77,7 +74,6 @@ export class BoardManager {
         
         // Check if the target square is already occupied
         if (this.gameBoard[row][col] !== null || e.target.querySelector('.tile')) {
-            console.warn(`Cannot place tile: square [${row}, ${col}] is already occupied`);
             // Visual feedback for user
             e.target.style.backgroundColor = '#ef4444';
             setTimeout(() => {
@@ -117,7 +113,6 @@ export class BoardManager {
     placeTile(tile, row, col, targetSquare) {
         // Check if square is already occupied (including visual check for tile elements)
         if (this.gameBoard[row][col] !== null || targetSquare.querySelector('.tile')) {
-            console.warn(`Square [${row}, ${col}] is already occupied`);
             return false;
         }
 
@@ -153,8 +148,6 @@ export class BoardManager {
             isBlank: tile.isBlank || false,
             designatedLetter: tile.designatedLetter
         });
-        
-        console.log(`✅ Placed ${displayLetter} (${actualLetter}) at [${row}, ${col}]`);
         
         // Dispatch event for other modules
         this.dispatchTilePlacedEvent(tile, row, col);
@@ -224,7 +217,6 @@ export class BoardManager {
                 
                 e.dataTransfer.setData('text/plain', JSON.stringify(tileData));
                 tile.classList.add('dragging');
-                console.log(`Dragging board tile ${letter} from [${row}, ${col}]`);
             });
             
             tile.addEventListener('dragend', (e) => {
@@ -249,8 +241,6 @@ export class BoardManager {
     }
 
     syncBoardState(boardData) {
-        console.log('🔄 Syncing board state from server', boardData);
-        
         if (!boardData || !Array.isArray(boardData)) return;
 
         // Clear current board
@@ -294,8 +284,6 @@ export class BoardManager {
                 }
             }
         }
-        
-        console.log('✅ Board state synchronized');
     }
 
     clearBoard() {
@@ -335,7 +323,6 @@ export class BoardManager {
         // Clear placed tiles array
         this.placedTiles = [];
         
-        console.log(`✅ Recalled ${recalledTiles.length} tiles`);
         return recalledTiles;
     }
 
@@ -353,7 +340,6 @@ export class BoardManager {
         );
         if (tileIndex !== -1) {
             this.placedTiles.splice(tileIndex, 1);
-            console.log(`🗑️ Removed tile from placedTiles array at [${row}, ${col}]`);
             return true;
         }
         return false;

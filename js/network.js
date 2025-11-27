@@ -23,18 +23,15 @@ export class NetworkManager {
     setupEventListeners() {
         // Connection events
         this.socket.on(GAME_EVENTS.CONNECT, () => {
-            console.log('🔗 Connected to server');
             this.updateConnectionStatus('Connected to server', 'text-green-600');
         });
         
         this.socket.on(GAME_EVENTS.DISCONNECT, () => {
-            console.log('❌ Disconnected from server');
             this.updateConnectionStatus('Disconnected from server', 'text-red-600');
         });
 
         // Lobby events
         this.socket.on(GAME_EVENTS.JOINED_GAME, (data) => {
-            console.log('✅ Successfully joined game:', data);
             this.currentPlayerId = data.playerId;
             this.gameRoomState = data.gameState;
             
@@ -72,12 +69,9 @@ export class NetworkManager {
         });
         
         this.socket.on(GAME_EVENTS.PLAYER_JOINED, (data) => {
-            console.log('👤 Player joined:', data.player.name);
-            
             // Update game room state with latest player data
             if (data.players) {
                 this.gameRoomState.players = data.players;
-                console.log(`📊 Updated gameRoomState: ${this.gameRoomState.players.length} player(s) in lobby`);
             }
             
             this.updatePlayersList(data);
@@ -100,8 +94,6 @@ export class NetworkManager {
         });
         
         this.socket.on(GAME_EVENTS.PLAYER_LEFT, (data) => {
-            console.log('👋 Player left:', data.playerName);
-            
             // Update game room state with latest player data
             if (data.players) {
                 this.gameRoomState.players = data.players;
@@ -127,7 +119,6 @@ export class NetworkManager {
         });
         
         this.socket.on(GAME_EVENTS.GAME_STARTED, (data) => {
-            console.log('🎮 Game started!', data);
             this.gameRoomState = data.gameState;
             // Add tileBagBreakdown to the game room state if it's separate
             if (data.tileBagBreakdown) {
@@ -138,7 +129,6 @@ export class NetworkManager {
         });
         
         this.socket.on(GAME_EVENTS.TURN_CHANGED, (data) => {
-            console.log('🔄 Turn changed:', data);
             this.gameRoomState = data.gameState;
             // Add tileBagBreakdown to the game room state if it's separate
             if (data.tileBagBreakdown) {
@@ -148,18 +138,25 @@ export class NetworkManager {
         });
 
         this.socket.on(GAME_EVENTS.TIMER_UPDATE, (data) => {
-            console.log('⏰ Timer update:', data);
             this.dispatchEvent('timerUpdate', data);
         });
 
         this.socket.on(GAME_EVENTS.TIMER_EXPIRED, (data) => {
-            console.log('⏱️ Timer expired:', data);
             this.dispatchEvent('timerExpired', data);
         });
         
         this.socket.on(GAME_EVENTS.GAME_FULL, (message) => {
-            console.log('🚫 Game full:', message);
             this.updateConnectionStatus(message, 'text-red-600');
+        });
+        
+        this.socket.on('game-ended', (data) => {
+            console.log('🏁 Game ended event received:', data);
+            this.dispatchEvent('gameEnded', data);
+        });
+        
+        this.socket.on('return-to-lobby', (data) => {
+            console.log('🔄 Returning to lobby:', data);
+            this.dispatchEvent('returnToLobby', data);
         });
     }
 
@@ -180,7 +177,6 @@ export class NetworkManager {
         if (this.socket && this.isHost) {
             // Check if there are at least 2 players
             const playerCount = this.gameRoomState.players?.length || 0;
-            console.log(`🎮 Attempting to start game with ${playerCount} players`);
             
             if (playerCount < 2) {
                 console.warn('⚠️ Cannot start game: Need at least 2 players');
@@ -192,7 +188,6 @@ export class NetworkManager {
             const timerSelect = document.getElementById('turn-timer-select');
             const turnTimer = parseInt(timerSelect.value) || 0;
             
-            console.log(`✅ Starting game with ${playerCount} players and ${turnTimer}s timer`);
             this.socket.emit(GAME_EVENTS.START_GAME, { turnTimer });
         }
     }
@@ -218,6 +213,12 @@ export class NetworkManager {
     exchangeTiles(exchangeData) {
         if (this.socket) {
             this.socket.emit(GAME_EVENTS.TILES_EXCHANGED, exchangeData);
+        }
+    }
+    
+    playAgain() {
+        if (this.socket) {
+            this.socket.emit('play-again');
         }
     }
 

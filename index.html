@@ -73,6 +73,36 @@
         </div>
     </div>
 
+    <!-- Game Conclusion Screen (initially hidden) -->
+    <div id="conclusion-screen" class="w-full max-w-3xl mx-auto p-8 rounded-xl shadow-2xl hidden" style="background: linear-gradient(145deg, #3d2817 0%, #2a1a0f 100%); border: 3px solid #8b6914;">
+        <div class="text-center mb-8">
+            <h1 class="text-5xl font-bold mb-2" style="color: #fbbf24; text-shadow: 3px 3px 6px rgba(0,0,0,0.7);">Game Over!</h1>
+            <div id="winner-announcement" class="text-3xl font-bold mt-4" style="color: #fde68a; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
+                <!-- Winner will be announced here -->
+            </div>
+        </div>
+        
+        <!-- Final Rankings -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold mb-4 text-center" style="color: #fbbf24; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">Final Standings</h2>
+            <div id="final-rankings" class="space-y-3">
+                <!-- Rankings will be inserted here -->
+            </div>
+        </div>
+        
+        <!-- Game End Reason -->
+        <div id="game-end-reason" class="text-center mb-6 text-lg font-medium" style="color: #fde68a; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">
+            <!-- Reason will be inserted here -->
+        </div>
+        
+        <!-- Play Again Button -->
+        <div class="text-center">
+            <button id="play-again-btn" class="px-8 py-4 text-xl font-bold rounded-lg transition duration-200" style="background: linear-gradient(to bottom, #059669 0%, #047857 100%); color: white; border: 2px solid #065f46; box-shadow: 0 4px 6px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2); text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">
+                Play Again
+            </button>
+        </div>
+    </div>
+
     <!-- Game Title in Game Screen (initially hidden) -->
     <div id="game-title" class="game-title-container hidden">
         <div class="scrabble-title">

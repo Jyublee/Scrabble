@@ -19,12 +19,6 @@ export class GameLogic {
         // Check if word exists in dictionary
         const isValid = dictionaryLoader.isValidWord(word);
         
-        if (isValid) {
-            console.log(`✅ "${word}" is a valid word`);
-        } else {
-            console.log(`❌ "${word}" is NOT a valid word`);
-        }
-        
         return isValid;
     }
 

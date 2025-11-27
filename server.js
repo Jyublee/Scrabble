@@ -76,6 +76,81 @@ function drawTilesForPlayer(count = 7) {
     return drawnTiles;
 }
 
+// Check if game should end and handle end game logic
+function checkAndHandleGameEnd() {
+    // Check condition 1: A player has no tiles and the bag is empty
+    const playerFinished = gameState.players.some(player => 
+        player.rack.length === 0 && gameState.tileBag.length === 0
+    );
+    
+    // Check condition 2: All players passed (consecutive passes >= number of players * 2)
+    const allPlayersPassed = gameState.consecutivePasses >= gameState.players.length * 2;
+    
+    if (playerFinished || allPlayersPassed) {
+        endGame(playerFinished);
+        return true;
+    }
+    
+    return false;
+}
+
+// End game and calculate final scores
+function endGame(playerFinishedAllTiles) {
+    console.log('🏁 Game ending...');
+    gameState.gameEnded = true;
+    
+    // Stop the turn timer
+    stopTurnTimer();
+    
+    // Calculate final scores
+    const finalScores = gameState.players.map(player => {
+        // Calculate total points of remaining tiles in player's rack
+        const remainingPoints = player.rack.reduce((sum, tile) => {
+            return sum + tile.points;
+        }, 0);
+        
+        return {
+            id: player.id,
+            name: player.name,
+            score: player.score,
+            remainingTiles: player.rack.length,
+            remainingPoints: remainingPoints,
+            finalScore: player.score - remainingPoints
+        };
+    });
+    
+    // If a player finished all tiles, they get bonus points (sum of all other players' remaining tiles)
+    if (playerFinishedAllTiles) {
+        const finisher = finalScores.find(p => p.remainingTiles === 0);
+        if (finisher) {
+            const bonusPoints = finalScores
+                .filter(p => p.id !== finisher.id)
+                .reduce((sum, p) => sum + p.remainingPoints, 0);
+            
+            finisher.finalScore += bonusPoints;
+            finisher.bonus = bonusPoints;
+            console.log(`🎉 ${finisher.name} gets bonus of ${bonusPoints} points for finishing!`);
+        }
+    }
+    
+    // Sort by final score (highest first)
+    finalScores.sort((a, b) => b.finalScore - a.finalScore);
+    
+    // Add rankings
+    finalScores.forEach((player, index) => {
+        player.rank = index + 1;
+    });
+    
+    console.log('🏆 Final Standings:', finalScores);
+    
+    // Emit game-ended event to all clients
+    io.emit('game-ended', {
+        reason: playerFinishedAllTiles ? 'Player finished all tiles' : 'All players passed',
+        finalScores: finalScores,
+        winner: finalScores[0]
+    });
+}
+
 function getCleanGameState() {
     // Return game state without any potentially circular references
     return {
@@ -116,7 +191,6 @@ function getTileBagBreakdown() {
 function startTurnTimer() {
     if (gameState.turnTimer <= 0) return;
     
-    console.log(`⏰ Starting ${gameState.turnTimer}s timer for player ${gameState.currentPlayer}`);
     gameState.currentTurnStartTime = Date.now();
     
     // Clear any existing timer
@@ -152,8 +226,6 @@ function stopTurnTimer() {
 }
 
 function handleTimerExpired() {
-    console.log(`⏱️ Timer expired for player ${gameState.currentPlayer}`);
-    
     stopTurnTimer();
     
     const currentPlayer = gameState.players[gameState.currentPlayer];
@@ -183,6 +255,32 @@ function handleTimerExpired() {
 function advanceTurn() {
     gameState.currentPlayer = (gameState.currentPlayer + 1) % gameState.players.length;
     gameState.freeSwapUsedThisTurn = false; // Reset free swap flag for new turn
+}
+
+// Reset game state for play again
+function resetGameState() {
+    console.log('🔄 Resetting game state for new game...');
+    
+    // Keep players but reset their scores and racks
+    gameState.players.forEach(player => {
+        player.score = 0;
+        player.rack = [];
+    });
+    
+    // Reset game state
+    gameState.currentPlayer = 0;
+    gameState.board = Array(15).fill().map(() => Array(15).fill(null));
+    gameState.tileBag = createTileBag();
+    gameState.gameStarted = false;
+    gameState.gameEnded = false;
+    gameState.consecutivePasses = 0;
+    gameState.isFirstWordOfGame = true;
+    gameState.freeSwapUsedThisTurn = false;
+    
+    // Stop any existing timer
+    stopTurnTimer();
+    
+    console.log('✅ Game state reset complete');
 }
 
 // Socket.io connection handling
@@ -263,8 +361,6 @@ io.on('connection', (socket) => {
             gameState.turnTimer = timerSetting;
             gameState.tileBag = createTileBag();
             
-            console.log(`🎮 Starting game with ${gameState.players.length} players, timer: ${gameState.turnTimer}s`);
-            
             // Give each player their starting tiles
             gameState.players.forEach(player => {
                 player.rack = drawTilesForPlayer(7);
@@ -284,8 +380,6 @@ io.on('connection', (socket) => {
                     newRack: player.rack
                 });
             });
-            
-            console.log('Game started with', gameState.players.length, 'players');
             
             // Start timer for first player if enabled
             if (gameState.turnTimer > 0) {
@@ -363,10 +457,13 @@ io.on('connection', (socket) => {
                     tileBagBreakdown: getTileBagBreakdown()
                 });
                 
+                // Check if game should end before advancing turn
+                if (checkAndHandleGameEnd()) {
+                    return; // Game ended, don't advance turn
+                }
+                
                 // Move to next turn
                 advanceTurn();
-                
-                console.log(`Turn changed: Player ${gameState.currentPlayer} (${gameState.players[gameState.currentPlayer].name})`);
                 
                 // Stop current timer and start new one
                 stopTurnTimer();
@@ -397,6 +494,11 @@ io.on('connection', (socket) => {
                     playerName: player.name,
                     consecutivePasses: gameState.consecutivePasses
                 });
+                
+                // Check if game should end (all players passed)
+                if (checkAndHandleGameEnd()) {
+                    return; // Game ended, don't advance turn
+                }
                 
                 // Move to next turn
                 advanceTurn();
@@ -485,8 +587,6 @@ io.on('connection', (socket) => {
                 });
                 
                 if (isFreeSwap) {
-                    console.log(`🎁 ${player.name} used FREE SWAP (exchanged ${data.exchangedTiles.length} tiles without skipping turn)`);
-                    
                     // Mark that free swap was used this turn
                     gameState.freeSwapUsedThisTurn = true;
                     
@@ -497,8 +597,6 @@ io.on('connection', (socket) => {
                         message: `${player.name} used a free swap!`
                     });
                 } else {
-                    console.log(`${player.name} exchanged ${data.exchangedTiles.length} tiles`);
-                    
                     // Pass the turn after regular exchange
                     gameState.consecutivePasses = 0; // Reset consecutive passes since this is an active move
                     advanceTurn();
@@ -532,6 +630,22 @@ io.on('connection', (socket) => {
     socket.on('submit-word', (data) => {
         // TODO: Add word validation logic here
         io.emit('word-submitted', data);
+    });
+    
+    // Handle play again request
+    socket.on('play-again', () => {
+        console.log(`🔄 ${socket.id} requested to play again`);
+        
+        // Reset game state
+        resetGameState();
+        
+        // Notify all players to return to lobby
+        io.emit('return-to-lobby', {
+            players: gameState.players.map(p => ({
+                id: p.id,
+                name: p.name
+            }))
+        });
     });
 });
 

@@ -480,3 +480,98 @@ button:disabled:hover {
     }
 }
 
+/* --- CONCLUSION SCREEN STYLES --- */
+#conclusion-screen {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.ranking-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    border-radius: 0.75rem;
+    transition: all 0.3s ease;
+    background: linear-gradient(to right, rgba(139, 105, 20, 0.2), rgba(139, 105, 20, 0.1));
+    border: 2px solid rgba(139, 105, 20, 0.3);
+}
+
+.ranking-item.first-place {
+    background: linear-gradient(to right, rgba(251, 191, 36, 0.3), rgba(251, 191, 36, 0.15));
+    border: 3px solid #fbbf24;
+    box-shadow: 0 0 20px rgba(251, 191, 36, 0.3);
+}
+
+.ranking-item.second-place {
+    background: linear-gradient(to right, rgba(156, 163, 175, 0.3), rgba(156, 163, 175, 0.15));
+    border: 2px solid #9ca3af;
+}
+
+.ranking-item.third-place {
+    background: linear-gradient(to right, rgba(205, 127, 50, 0.3), rgba(205, 127, 50, 0.15));
+    border: 2px solid #cd7f32;
+}
+
+.rank-badge {
+    font-size: 2rem;
+    font-weight: bold;
+    min-width: 3rem;
+    text-align: center;
+}
+
+.first-place .rank-badge {
+    color: #fbbf24;
+    text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+}
+
+.second-place .rank-badge {
+    color: #d1d5db;
+    text-shadow: 0 0 10px rgba(209, 213, 219, 0.3);
+}
+
+.third-place .rank-badge {
+    color: #cd7f32;
+    text-shadow: 0 0 10px rgba(205, 127, 50, 0.3);
+}
+
+.player-name {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #fde68a;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.player-score {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #fbbf24;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.score-breakdown {
+    font-size: 0.875rem;
+    color: #fde68a;
+    opacity: 0.8;
+    margin-top: 0.25rem;
+}
+
+#play-again-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+}
+
+#play-again-btn:active {
+    transform: scale(0.98);
+}
+

@@ -54,7 +54,6 @@ export class NetworkPlayer {
         
         this.score += points;
         this.updateScoreDisplay();
-        console.log(`${this.name} scored ${points} points. Total: ${this.score}`);
     }
 
     subtractFromScore(points) {
@@ -65,7 +64,6 @@ export class NetworkPlayer {
         
         this.score = Math.max(0, this.score - points);
         this.updateScoreDisplay();
-        console.log(`${this.name} lost ${points} points. Total: ${this.score}`);
     }
 
     addTileToRack(tile) {
@@ -75,9 +73,6 @@ export class NetworkPlayer {
     }
 
     removeTileFromRack(letterOrTile, tileProperties = null) {
-        console.log('🎯 Attempting to remove tile from rack:', letterOrTile);
-        console.log('📦 Current rack before removal:', JSON.stringify(this.rack));
-        
         // If passed a full tile object with properties, try to match precisely
         if (typeof letterOrTile === 'object' && letterOrTile !== null) {
             const tileToRemove = letterOrTile;
@@ -89,9 +84,7 @@ export class NetworkPlayer {
                 );
                 
                 if (idIndex !== -1) {
-                    const removed = this.rack.splice(idIndex, 1)[0];
-                    console.log('✅ Removed tile by ID at index', idIndex, ':', removed);
-                    console.log('📦 Rack after removal:', JSON.stringify(this.rack));
+                    this.rack.splice(idIndex, 1);
                     this.updateRackDisplay();
                     return true;
                 }
@@ -116,9 +109,7 @@ export class NetworkPlayer {
             });
             
             if (index !== -1) {
-                const removed = this.rack.splice(index, 1)[0];
-                console.log('✅ Removed tile at index', index, ':', removed);
-                console.log('📦 Rack after removal:', JSON.stringify(this.rack));
+                this.rack.splice(index, 1);
                 this.updateRackDisplay();
                 return true;
             } else {
@@ -134,15 +125,12 @@ export class NetworkPlayer {
         });
         
         if (index !== -1) {
-            const removed = this.rack.splice(index, 1)[0];
-            console.log('✅ Removed tile at index', index, '(fallback):', removed);
-            console.log('📦 Rack after removal:', JSON.stringify(this.rack));
+            this.rack.splice(index, 1);
             this.updateRackDisplay();
             return true;
         }
         
         console.error('❌ Failed to remove tile from rack - not found');
-        console.log('📦 Final rack state:', JSON.stringify(this.rack));
         return false;
     }
 
@@ -154,22 +142,17 @@ export class NetworkPlayer {
             this.rack.push(tile);
         }
         
-        console.log(`${this.name} drew tiles:`, this.rack.slice(-1));
         this.updateRackDisplay();
     }
 
     updateScoreDisplay() {
         const scoreElement = document.getElementById(`${this.id}-score`);
-        console.log(`Updating score display for ${this.name} (${this.id}): ${this.score} points`);
-        console.log(`Looking for element: ${this.id}-score`, scoreElement);
         
         if (scoreElement) {
             const nameSpan = scoreElement.querySelector('span:first-child');
             const scoreSpan = scoreElement.querySelector('span:last-child');
             if (nameSpan) nameSpan.textContent = this.name + (this.isLocal ? ' (You)' : '');
             if (scoreSpan) scoreSpan.textContent = this.score;
-            
-            console.log(`Updated display: Name="${nameSpan?.textContent}", Score="${scoreSpan?.textContent}"`);
         } else {
             console.error(`Score element not found: ${this.id}-score`);
         }
@@ -230,14 +213,12 @@ export class NetworkPlayer {
             // Check if tile interactions are disabled
             if (e.target.classList.contains('disabled-tile')) {
                 e.preventDefault();
-                console.log('🚫 Cannot move tiles - Not your turn!');
                 return false;
             }
             
             // Check if this is an unassigned blank tile
             if (letter === 'BLANK' && !e.target.dataset.designatedLetter) {
                 e.preventDefault();
-                console.log('🚫 Blank tile must be assigned a letter before moving!');
                 alert('Please click the blank tile to choose a letter first!');
                 return false;
             }
@@ -299,11 +280,9 @@ export class NetworkPlayer {
             if (active) {
                 scoreElement.classList.remove('bg-gray-100');
                 scoreElement.classList.add('bg-green-200', 'border-green-500');
-                console.log(`${this.name} is now active (turn started)`);
             } else {
                 scoreElement.classList.remove('bg-green-200', 'border-green-500');
                 scoreElement.classList.add('bg-gray-100');
-                console.log(`${this.name} is now inactive (turn ended)`);
             }
         }
         
